@@ -54,7 +54,9 @@ index.html            画面の骨組み
 css/style.css         デザイン（ライト／ダーク）
 js/config.js          公開URL・集計サーバーURLなどの設定
 js/data/*.js          質問・16タイプ・都道府県・運勢のデータ
-js/art/*.js           動物キャラクターとナビゲーターのSVGイラスト
+js/art/animals.js     16タイプの動物キャラクター（SVG）
+js/art/navigators.js  ナビゲーター画像の表示
+img/                  ずんだもん・四国めたんの画像
 js/lib/core.js        スコア計算・相性・運勢などのロジック（画面に依存しない）
 js/lib/stats.js       集計サーバーとの通信
 js/app.js             画面の切り替えと描画
@@ -78,5 +80,5 @@ npm run build:og       # og/*.png を作り直す（CHROMIUM_PATH で Chromium �
 
 - 本サイトはエンターテインメントを目的とした非公式の性格診断です。
 - MBTI® は The Myers-Briggs Company の登録商標です。本サイトは同社および公式のMBTI検査とは関係ありません。タイプのニックネーム・動物キャラクター・解説文はすべてオリジナルです。
-- ずんだもん・四国めたん © 東北ずん子・ずんだもんプロジェクト（SSS合同会社）。本サイトのイラストは[キャラクター利用ガイドライン](https://zunko.jp/guideline.html)に基づくファンアートです。商用利用する場合などは、必ず最新のガイドラインを確認してください。
-- フォント：[Dela Gothic One](https://fonts.google.com/specimen/Dela+Gothic+One)、[Zen Maru Gothic](https://fonts.google.com/specimen/Zen+Maru+Gothic)（SIL Open Font License）
+- ずんだもん・四国めたん © 東北ずん子・ずんだもんプロジェクト（SSS合同会社）。[キャラクター利用ガイドライン](https://zunko.jp/guideline.html)に基づいて使用しています。ナビゲーターのイラストは `img/` の画像です。画像の入手元に別の規約やクレジット表記の指定がある場合は、それに従ってフッターにも追記してください。商用利用する場合などは、必ず最新のガイドラインを確認してください。
+- フォント：[Mochiy Pop One](https://fonts.google.com/specimen/Mochiy+Pop+One)、[M PLUS Rounded 1c](https://fonts.google.com/specimen/M+PLUS+Rounded+1c)、[Fredoka](https://fonts.google.com/specimen/Fredoka)（SIL Open Font License）

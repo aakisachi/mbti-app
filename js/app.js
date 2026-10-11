@@ -87,9 +87,10 @@
   var LINE_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8.1-6C21.4 14.2 22 12.7 22 11c0-4.4-4.5-8-10-8zM8.2 13.4H6.3a.5.5 0 0 1-.5-.5V9.1a.5.5 0 0 1 1 0v3.3h1.4a.5.5 0 0 1 0 1zm2-.5a.5.5 0 0 1-1 0V9.1a.5.5 0 0 1 1 0zm4.6 0a.5.5 0 0 1-.9.3l-2-2.6v2.3a.5.5 0 0 1-1 0V9.1a.5.5 0 0 1 .9-.3l2 2.6V9.1a.5.5 0 0 1 1 0zm3.1-2.4a.5.5 0 0 1 0 1h-1.4v.9h1.4a.5.5 0 0 1 0 1h-1.9a.5.5 0 0 1-.5-.5V9.1c0-.3.2-.5.5-.5h1.9a.5.5 0 0 1 0 1h-1.4v.9z"/></svg>';
   var POD = '<svg viewBox="0 0 40 40" aria-hidden="true"><g transform="rotate(-35 20 20)"><path d="M20 4c6 0 7 8 6.5 16S24 36 20 36s-6-8-6.5-16S14 4 20 4z" fill="#8fce4f" stroke="#2b2118" stroke-width="2.4"/><circle cx="20" cy="12" r="3.6" fill="#b9e58a"/><circle cx="20" cy="20" r="3.8" fill="#b9e58a"/><circle cx="20" cy="28" r="3.6" fill="#b9e58a"/></g></svg>';
 
-  function avatar(who, face) {
-    return '<div class="avatar ' + who + '">' + TF.navSvg(who, face, { crop: true }) + "</div>";
+  function avatar(who) {
+    return '<div class="avatar ' + who + '">' + TF.navArt(who, { face: true, decorative: true }) + "</div>";
   }
+
   function talk(lines) {
     return '<div class="talk">' + lines.map(function (l) {
       var info = TF.NAV_INFO[l.who];
@@ -239,7 +240,7 @@
   // ============================================================
   //  ホーム
   // ============================================================
-  function stampCard() {
+  function stampCard(extraCls) {
     var vs = C.visitStats(store.visits);
     var today = C.dateKey();
     var cells = "";
@@ -256,16 +257,36 @@
     var prevNeed = 0;
     TF.SECRETS.forEach(function (s) { if (s.need <= vs.total) prevNeed = s.need; });
     var progress = next ? Math.round(((vs.total - prevNeed) / (next.need - prevNeed)) * 100) : 100;
-    return '<section class="card stamp-card" aria-labelledby="stampTitle">' +
+    return '<section class="card tile stamp-tile ' + (extraCls || "") + '" aria-labelledby="stampTitle">' +
       '<div class="stamp-head"><h3 id="stampTitle">ずんだスタンプ</h3>' +
       '<span class="streak">' + vs.streak + "日連続 ・ 合計" + vs.total + "日</span></div>" +
       '<ul class="stamps" aria-label="直近7日間の来訪スタンプ">' + cells + "</ul>" +
       (next
-        ? '<p class="small">あと<b>' + (next.need - vs.total) + "日</b>来ると、ひみつの会話「" + esc(next.title) + "」が解放されるのだ！</p>" +
-          '<div class="progress-line" style="margin-top:8px" aria-hidden="true"><span style="width:' + progress + '%"></span></div>'
-        : '<p class="small">すべてのひみつの会話を解放したのだ！ すごいのだ！</p>') +
-      '<p style="margin-top:12px"><a class="text-link" href="#/secrets">ひみつの会話（' + unlocked + "/" + TF.SECRETS.length + "）を見る</a></p>" +
+        ? '<p>あと<b>' + (next.need - vs.total) + "日</b>来ると、ひみつの会話「" + esc(next.title) + "」が解放されるのだ。</p>" +
+          '<div class="meter" aria-hidden="true"><span style="width:' + progress + '%"></span></div>'
+        : "<p>すべてのひみつの会話を解放したのだ！</p>") +
+      '<a class="text-link small" href="#/secrets">ひみつの会話を見る（' + unlocked + "/" + TF.SECRETS.length + "）</a>" +
       "</section>";
+  }
+
+  function marquee() {
+    var item = function (c, hidden) {
+      return '<a class="mq-item ' + g(c) + '" href="#/type/' + c + '"' + (hidden ? ' tabindex="-1" aria-hidden="true"' : "") + ">" +
+        '<span class="mq-face">' + animal(c) + "</span><b>" + c + "</b><span>" + esc(TYPES[c].nick) + "</span></a>";
+    };
+    return '<nav class="marquee" aria-label="16タイプ一覧">' +
+      '<div class="marquee-track">' + TF.TYPE_ORDER.map(function (c) { return item(c, false); }).join("") +
+      TF.TYPE_ORDER.map(function (c) { return item(c, true); }).join("") + "</div></nav>";
+  }
+
+  function miniMap() {
+    var stats = statsCache || C.demoStats();
+    return '<div class="mini-map" aria-hidden="true">' + TF.PREFECTURES.map(function (p) {
+      var r = C.rankCounts(stats.prefs[p.code]);
+      var cls = r.total ? g(r.list[0].type) : "";
+      var pos = p.w ? "grid-column:" + (p.x + 1) + " / span " + p.w + ";grid-row:" + (p.y + 1) + " / span " + p.h : "grid-column:" + (p.x + 1) + ";grid-row:" + (p.y + 1);
+      return '<i class="' + cls + '" style="' + pos + '"></i>';
+    }).join("") + "</div>";
   }
 
   function renderHome() {
@@ -276,51 +297,62 @@
     var today = C.fortune(C.dateKey());
     var top = today[0];
     var myRank = mine ? today.filter(function (f) { return f.type === mine; })[0].rank : null;
+    var pairA = mine || "INFP";
+    var pairB = TYPES[pairA].best[0].t;
+    var pairScore = C.compat(pairA, pairB).score;
 
     var startBtns = inProgress
-      ? '<div class="btn-row"><a class="btn btn-metan btn-lg" href="#/quiz">続きから（' + answered + "/" + Q.length + "）" + icon("arrowR") + "</a>" +
+      ? '<div class="btn-row"><a class="btn btn-zunda btn-lg" href="#/quiz">続きから（' + answered + "/" + Q.length + "）" + icon("arrowR") + "</a>" +
         '<button class="btn btn-lg" type="button" data-action="restart">最初から</button></div>'
-      : '<div class="btn-row"><button class="btn btn-metan btn-lg" type="button" data-action="restart">' + (mine ? "もう一度診断する" : "診断をはじめる") + icon("arrowR") + "</button></div>";
+      : '<div class="btn-row"><button class="btn btn-zunda btn-lg" type="button" data-action="restart">' + (mine ? "もう一度診断する" : "診断をはじめる") + icon("arrowR") + "</button>" +
+        '<a class="btn btn-lg" href="#/types">16タイプを見る</a></div>';
+
+    var hero = '<section class="hero" aria-labelledby="heroTitle">' +
+      '<div class="hero-copy">' +
+      '<span class="hero-tag"><span class="dots"><span>' + TF.navArt("zunda", { face: true, decorative: true, eager: true }) + "</span><span>" +
+      TF.navArt("metan", { face: true, decorative: true, eager: true }) + "</span></span>ずんだもん × 四国めたん</span>" +
+      '<h1 class="hero-title" id="heroTitle">20問で、<br>あなたの<span class="z">タイプ</span>が<br>わかる<span class="m">のだ。</span></h1>' +
+      '<p class="hero-lead">直感で答えるだけ。16タイプの中から、あなたにいちばん近いタイプと、相性のいい相手を教えてくれます。</p>' +
+      startBtns +
+      '<div class="hero-stats"><div><b>20</b><span>質問</span></div><div><b>3</b><span>分くらい</span></div><div><b>16</b><span>タイプ</span></div></div>' +
+      "</div>" +
+      '<div class="stage" aria-hidden="true">' +
+      TF.navArt("zunda", { cls: "chara z", eager: true, decorative: true }) +
+      TF.navArt("metan", { cls: "chara m", eager: true, decorative: true }) +
+      '<span class="say">ボクたちが案内するのだ！</span></div>' +
+      "</section>";
 
     var myCard = mine
-      ? '<a class="card card-link my-type ' + g(mine) + '" href="#/result">' +
-        '<div class="disc-sm">' + animal(mine) + "</div>" +
-        '<div><div class="small muted" style="font-weight:900;letter-spacing:.1em">あなたのタイプ</div>' +
-        '<div class="code">' + mine + '</div><div class="nick">' + esc(TYPES[mine].nick) + "</div></div>" +
+      ? '<a class="card my-type ' + g(mine) + '" href="#/result">' +
+        '<div class="disc-sm" style="background:var(--paper)">' + animal(mine) + "</div>" +
+        '<div><div class="eyebrow">あなたのタイプ</div><div class="code">' + mine + '</div><div class="nick">' + esc(TYPES[mine].nick) + "</div></div>" +
         icon("arrowR", "arrow") + "</a>"
       : "";
 
-    var html = '' +
-      '<section class="hero">' +
-      '<div class="hero-chars" aria-hidden="true">' +
-      '<div class="zunda-wrap">' + TF.navSvg("zunda", "happy") + "</div>" +
-      '<div class="metan-wrap">' + TF.navSvg("metan", "smile") + "</div>" +
-      "</div>" +
-      '<div class="card hero-card">' +
-      '<span class="hero-eyebrow">ずんだもん＆めたんがナビゲート</span>' +
-      '<h1 class="hero-title">20問でわかる<br>あなたの<span class="hl-z">性格</span><span class="hl-m">タイプ</span></h1>' +
-      '<p class="hero-lead">直感で答えるだけで、16タイプの中からあなたのタイプを診断。結果はシェアしたり、友達との相性チェックにも使えます。</p>' +
-      startBtns +
-      '<div class="hero-meta"><span><b>20</b>問</span><span>約<b>3</b>分</span><span><b>16</b>タイプ</span></div>' +
-      "</div></section>" +
-      '<div class="stack-lg" style="margin-top:22px">' +
-      myCard +
-      '<section aria-label="ナビゲーターからのひとこと">' + talk([
-        { who: "zunda", face: "happy", text: "ボクはずんだもんなのだ！ あなたの性格、ズバッと診断してあげるのだ！" },
-        { who: "metan", face: "smile", text: "四国めたんよ。診断のあとは、毎日の運勢や県別ランキングもチェックしてね。" }
-      ]) + "</section>" +
+    var podium = today.slice(0, 3).map(function (f) {
+      return '<li class="' + g(f.type) + '"><span class="pm-face">' + animal(f.type) + "</span><b>" + f.type + "</b><small>" + f.rank + "位</small></li>";
+    }).join("");
+
+    var strip = ["INTJ", "ENTP", "INFJ", "ENFP", "ISTJ", "ESFJ", "ISFP", "ESTP"].map(function (c) {
+      return '<span class="' + g(c) + '">' + animal(c) + "</span>";
+    }).join("");
+
+    var bento = '<section aria-labelledby="dailyTitle"><div class="h-section"><h2 id="dailyTitle">毎日のおたのしみ</h2></div>' +
+      '<div class="bento">' +
+      '<a class="card tile fortune" href="#/fortune"><span class="tile-kicker">' + icon("star") + "今日の運勢 ・ 毎日0時に更新</span>" +
+      "<h3>今日いちばんツイてるのは<br>" + top.type + "（" + esc(TYPES[top.type].nick) + "）</h3>" +
+      "<p>" + (myRank ? "あなたの " + mine + " は今日 <b>" + myRank + "位</b>。ラッキーアイテムもチェック！" : "あなたのタイプは何位？ ラッキーアイテムもチェック！") + "</p>" +
+      '<ol class="podium-mini">' + podium + "</ol></a>" +
+      '<a class="card tile rank" href="#/ranking"><span class="tile-kicker">' + icon("map") + "県別ランキング</span><h3>あなたの県で<br>多いタイプは？</h3>" + miniMap() + "</a>" +
+      '<a class="card tile compat" href="#/compat"><span class="tile-kicker">' + icon("heart") + "相性チェック</span><h3>あの人との<br>相性は？</h3>" +
+      '<div class="mini-pair"><span class="' + g(pairA) + '">' + animal(pairA) + '</span><span class="' + g(pairB) + '">' + animal(pairB) + "</span><b>" + pairScore + "%</b></div></a>" +
       stampCard() +
-      '<section aria-labelledby="featTitle"><h2 class="section-title" id="featTitle"><span class="dot"></span>毎日のおたのしみ</h2>' +
-      '<div class="feature-grid">' +
-      '<a class="card card-link feature" href="#/fortune"><span class="f-badge">毎日更新</span>' +
-      '<span class="f-icon" style="background:#fff3c4">' + icon("star") + "</span><h3>今日の運勢</h3>" +
-      "<p>今日の1位は <b>" + top.type + "</b>！" + (myRank ? "<br>あなたは <b>" + myRank + "位</b>" : "<br>あなたは何位？") + "</p></a>" +
-      '<a class="card card-link feature" href="#/ranking"><span class="f-icon" style="background:var(--zunda-soft)">' + icon("map") + "</span><h3>県別ランキング</h3><p>あなたの県で多いタイプは？ タップで47都道府県をチェック。</p></a>" +
-      '<a class="card card-link feature" href="#/compat"><span class="f-icon" style="background:var(--metan-soft)">' + icon("heart") + "</span><h3>相性チェック</h3><p>友達や恋人とのタイプ相性を、ずんだもんたちが判定。</p></a>" +
-      '<a class="card card-link feature" href="#/types"><span class="f-icon" style="background:#e2effa">' + icon("grid") + "</span><h3>16タイプ図鑑</h3><p>16の動物キャラクターと、各タイプのくわしい解説。</p></a>" +
-      "</div></section>" +
-      "</div>";
-    setView(html);
+      '<a class="card tile types" href="#/types"><span class="tile-kicker">' + icon("grid") + "16タイプ図鑑</span><h3>16の動物キャラと、くわしい解説</h3>" +
+      '<div class="type-strip" aria-hidden="true">' + strip + "</div></a>" +
+      "</div></section>";
+
+    main.classList.add("wide");
+    setView(hero + '<div class="stack-lg" style="margin-top:var(--s4)">' + marquee() + myCard + bento + "</div>");
     bindCommon();
     return "";
   }
@@ -342,46 +374,58 @@
     }
     p.idx = Math.max(0, Math.min(Q.length - 1, p.idx || 0));
 
+    var ticks = Q.map(function () { return "<i></i>"; }).join("");
     setView(
       '<h1 class="sr-only">性格診断の質問</h1>' +
       '<div class="quiz-top">' +
       '<button class="quiz-back" type="button" data-action="prev" aria-label="前の質問にもどる">' + icon("arrowL") + "</button>" +
-      '<div class="quiz-progress"><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + Q.length + '" aria-label="回答の進み具合"><span></span></div>' +
-      '<div class="count"><span id="qCount"></span><span id="qLeft"></span></div></div>' +
+      '<div style="flex:1;min-width:0"><div class="ticks" role="progressbar" aria-valuemin="0" aria-valuemax="' + Q.length + '" aria-label="回答の進み具合">' + ticks + "</div>" +
+      '<div class="quiz-meta"><span class="latin" id="qCount"></span><span id="qLeft"></span></div></div>' +
       "</div>" +
       '<div id="qCard"></div>' +
       '<div class="quiz-guide" id="qGuide" aria-live="polite"></div>' +
-      '<p class="kbd-hint"><kbd>1</kbd>〜<kbd>5</kbd> キーで回答、<kbd>←</kbd> で前の質問にもどれます</p>'
+      '<p class="kbd-hint"><kbd>1</kbd>〜<kbd>5</kbd> で回答 ・ <kbd>Enter</kbd> で次へ ・ <kbd>←</kbd> で前の質問へ</p>'
     );
 
     var dir = 0;
-    function draw() {
-      var q = Q[p.idx];
+    function drawProgress() {
       var answered = p.answers.filter(function (a) { return a !== null; }).length;
-      var bar = main.querySelector(".quiz-progress .bar");
+      var bar = main.querySelector(".ticks");
       bar.setAttribute("aria-valuenow", String(answered));
-      bar.firstChild.style.width = (answered / Q.length) * 100 + "%";
+      bar.querySelectorAll("i").forEach(function (el, i) {
+        el.className = i === p.idx ? "now" : p.answers[i] !== null ? "done" : "";
+      });
       document.getElementById("qCount").textContent = "Q" + (p.idx + 1) + " / " + Q.length;
       var leftSec = (Q.length - answered) * 9;
       document.getElementById("qLeft").textContent = answered === Q.length ? "回答完了" : "のこり約" + Math.max(1, Math.ceil(leftSec / 60)) + "分";
-
+    }
+    function draw() {
+      var q = Q[p.idx];
+      drawProgress();
       var cur = p.answers[p.idx];
-      var classes = ["s2", "s1", "s0", "sm1", "sm2"];
-      var btns = TF.SCALE.map(function (s, i) {
-        return '<button type="button" class="scale-btn ' + classes[i] + '" data-value="' + s.value + '" aria-pressed="' + (cur === s.value) + '" aria-label="' + s.label + '" title="' + s.label + '"></button>';
+      var classes = ["l2", "l1", "l0", "lm1", "lm2"];
+      var opts = TF.SCALE.map(function (s, i) {
+        return '<label class="' + classes[i] + '" title="' + s.label + '">' +
+          '<input type="radio" name="q' + p.idx + '" value="' + s.value + '"' + (cur === s.value ? " checked" : "") + ' aria-label="' + s.label + '">' +
+          '<span class="dot" aria-hidden="true"></span></label>';
       }).join("");
       var card = document.getElementById("qCard");
-      card.innerHTML = '<section class="card q-card ' + (dir < 0 ? "enter-back" : "enter") + '" aria-labelledby="qText">' +
+      card.innerHTML = '<section class="card q-card ' + (dir < 0 ? "enter-back" : "enter") + '">' +
         '<div class="q-num">QUESTION ' + String(p.idx + 1).padStart(2, "0") + "</div>" +
-        '<h2 class="q-text" id="qText">' + esc(q.text) + "</h2>" +
-        '<div class="scale" role="group" aria-labelledby="qText">' + btns + "</div>" +
-        '<div class="scale-labels" aria-hidden="true"><span class="agree">そう思う</span><span class="disagree">そう思わない</span></div>' +
+        '<fieldset><legend class="q-text">' + esc(q.text) + "</legend>" +
+        '<div class="likert">' + opts + "</div></fieldset>" +
+        '<div class="likert-ends" aria-hidden="true"><span class="a">そう思う</span><span class="d">そう思わない</span></div>' +
         "</section>";
       var line = TF.QUIZ_LINES[p.idx] || TF.QUIZ_LINES[0];
       document.getElementById("qGuide").innerHTML = talk([line]);
 
-      card.querySelectorAll(".scale-btn").forEach(function (b) {
-        b.addEventListener("click", function () { answer(Number(b.getAttribute("data-value"))); });
+      card.querySelectorAll('input[type="radio"]').forEach(function (inp) {
+        var v = Number(inp.value);
+        // タップ・クリックは回答して次へ。キーボード（矢印・スペース）は選ぶだけで、Enterで次へ。
+        inp.addEventListener("click", function () { if (!kbMode) answer(v); });
+        inp.addEventListener("change", function () {
+          if (kbMode) { p.answers[p.idx] = v; save(); drawProgress(); }
+        });
       });
     }
 
@@ -391,21 +435,24 @@
       busy = true;
       p.answers[p.idx] = v;
       save();
-      main.querySelectorAll(".scale-btn").forEach(function (b) {
-        b.setAttribute("aria-pressed", String(Number(b.getAttribute("data-value")) === v));
-      });
+      var inp = main.querySelector('.likert input[value="' + v + '"]');
+      if (inp) inp.checked = true;
       setTimeout(function () {
         busy = false;
-        if (p.idx < Q.length - 1) {
-          p.idx++;
-          dir = 1;
-          save();
-          draw();
-          focusFirstScale();
-        } else {
-          finish();
-        }
+        next();
       }, 260);
+    }
+    function next() {
+      if (p.answers[p.idx] === null) { toast("どれかひとつ選んでほしいのだ！"); return; }
+      if (p.idx < Q.length - 1) {
+        p.idx++;
+        dir = 1;
+        save();
+        draw();
+        focusChoice();
+      } else {
+        finish();
+      }
     }
     function prev() {
       if (p.idx === 0) { go("#/"); return; }
@@ -413,16 +460,15 @@
       dir = -1;
       save();
       draw();
-      focusFirstScale();
+      focusChoice();
     }
-    function focusFirstScale() {
+    function focusChoice() {
       // キーボード操作中だけ、新しい質問の選択肢へフォーカスを移す
       if (!kbMode) return;
-      var sel = main.querySelector('.scale-btn[aria-pressed="true"]') || main.querySelector(".scale-btn.s0");
+      var sel = main.querySelector(".likert input:checked") || main.querySelector('.likert input[value="0"]');
       if (sel) sel.focus({ preventScroll: true });
     }
     function finish() {
-      // 未回答があれば、そこへ戻す
       var miss = p.answers.indexOf(null);
       if (miss !== -1) {
         p.idx = miss;
@@ -441,12 +487,12 @@
     main.querySelector('[data-action="prev"]').addEventListener("click", prev);
     function onKey(e) {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var inRadio = e.target && e.target.matches && e.target.matches('input[type="radio"]');
       if (/^[1-5]$/.test(e.key)) { e.preventDefault(); answer(TF.SCALE[Number(e.key) - 1].value); }
+      else if (e.key === "Enter" && (inRadio || e.target === document.body)) { e.preventDefault(); next(); }
+      else if (inRadio && e.key.indexOf("Arrow") === 0) { return; } // 選択肢の移動はブラウザ標準に任せる
       else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
-      else if (e.key === "ArrowRight" && p.answers[p.idx] !== null) {
-        e.preventDefault();
-        if (p.idx < Q.length - 1) { p.idx++; dir = 1; save(); draw(); focusFirstScale(); } else finish();
-      }
+      else if (e.key === "ArrowRight" && p.answers[p.idx] !== null) { e.preventDefault(); next(); }
     }
     document.addEventListener("keydown", onKey);
     cleanup.push(function () { document.removeEventListener("keydown", onKey); });
@@ -500,16 +546,20 @@
       return '<option value="' + p.code + '"' + (v && v.pref === p.code ? " selected" : "") + ">" + p.name + "</option>";
     }).join("");
     var done = v && v.type === code;
-    return '<section class="card vote-card" id="voteCard" aria-labelledby="voteTitle">' +
-      '<h2 class="section-title" id="voteTitle"><span class="dot" style="background:var(--metan)"></span>都道府県ランキングに参加</h2>' +
+    return '<section class="card" id="voteCard" aria-labelledby="voteTitle">' +
+      '<h2 class="sec-title" id="voteTitle">都道府県ランキングに参加</h2>' +
       (done
         ? '<div class="vote-done">' + icon("vote") + "<span>" + esc(TF.prefByCode(v.pref).name) + " の " + code + " として参加中なのだ！</span></div>" +
-          '<div class="btn-row" style="justify-content:flex-start;margin-top:12px"><a class="btn btn-zunda btn-sm" href="#/ranking?pref=' + v.pref + '">' + esc(TF.prefByCode(v.pref).name) + "のランキングを見る</a>" +
+          '<div class="btn-row" style="margin-top:var(--s4)"><a class="btn btn-zunda btn-sm" href="#/ranking?pref=' + v.pref + '">' + esc(TF.prefByCode(v.pref).name) + "のランキングを見る</a>" +
           '<button class="btn btn-sm" type="button" data-action="vote-change">住んでいる県を変える</button></div>'
-        : '<p class="small" style="color:var(--ink-2)">住んでいる都道府県を教えてね。あなたの1票で、県別ランキングが変わるのだ！（タイプと都道府県だけを匿名で集計します）</p>' +
-          '<div class="vote-row"><label><span class="sr-only">都道府県</span><select id="votePref"><option value="">都道府県をえらぶ</option>' + opts + "</select></label>" +
+        : '<p class="small" style="color:var(--ink-2)">住んでいる都道府県を教えてね。あなたの1票で、県別ランキングが変わるのだ。タイプと都道府県だけを匿名で集計します。</p>' +
+          '<div class="vote-row"><label><span class="sr-only">都道府県</span><select class="select" id="votePref"><option value="">都道府県をえらぶ</option>' + opts + "</select></label>" +
           '<button class="btn btn-zunda" type="button" data-action="vote" data-type="' + code + '">参加する</button></div>') +
       "</section>";
+  }
+
+  function panelBlock(iconName, title, body) {
+    return '<div class="info-card"><h3><span class="ic">' + icon(iconName) + "</span>" + esc(title) + "</h3>" + body + "</div>";
   }
 
   function renderTypePage(code, isResult) {
@@ -517,28 +567,43 @@
     var grp = TF.groupOf(code);
     var mine = myType();
     var res = isResult ? store.result : null;
-
-    var heroLabel = isResult ? "あなたのタイプは…" : "タイプ解説";
     var letters = code.split("").map(function (c) { return "<span>" + c + "</span>"; }).join("");
 
     var pending = "";
     if (isResult && store.pendingCompat && TYPES[store.pendingCompat]) {
       var pc = store.pendingCompat;
-      pending = '<a class="card card-link ' + g(pc) + '" href="#/compat?a=' + pc + "&b=" + code + '" style="display:flex;gap:12px;align-items:center;background:var(--metan-soft)">' +
-        '<div class="disc-sm">' + animal(pc) + "</div><div><b>友達（" + pc + "）との相性が出たのだ！</b><br><span class='small'>タップして相性を見る</span></div>" + icon("arrowR", "arrow") + "</a>";
+      pending = '<a class="card my-type ' + g(pc) + '" href="#/compat?a=' + pc + "&b=" + code + '" style="background:var(--metan-tint)">' +
+        '<div class="disc-sm" style="background:var(--paper)">' + animal(pc) + "</div><div><b>友達（" + pc + "）との相性が出たのだ！</b><div class='small muted'>タップして相性を見る</div></div>" + icon("arrowR", "arrow") + "</a>";
     }
 
     var compatBest = t.best.map(function (b) {
-      var bt = TYPES[b.t];
-      return '<a class="card card-link compat-card ' + g(b.t) + '" href="#/type/' + b.t + '">' +
+      return '<a class="card compat-card ' + g(b.t) + '" href="#/type/' + b.t + '">' +
         '<div class="disc-sm">' + animal(b.t) + "</div>" +
-        '<div><div class="code">' + b.t + '</div><div class="nick">' + esc(bt.nick) + '</div><div class="why">' + esc(b.why) + "</div></div></a>";
+        '<div><div class="code">' + b.t + '</div><div class="nick">' + esc(TYPES[b.t].nick) + '</div><div class="why">' + esc(b.why) + "</div></div></a>";
     }).join("");
     var compatGood = t.good.map(function (c) {
-      return '<a class="card card-link compat-card ' + g(c) + '" href="#/type/' + c + '">' +
+      return '<a class="card compat-card ' + g(c) + '" href="#/type/' + c + '">' +
         '<div class="disc-sm">' + animal(c) + "</div>" +
         '<div><div class="code">' + c + '</div><div class="nick">' + esc(TYPES[c].nick) + "</div></div></a>";
     }).join("");
+
+    var tabs = [
+      { id: "about", label: "特徴", body: '<p class="lead-quote">' + esc(t.title) + "</p><p>" + esc(t.desc) + "</p>" +
+        '<div class="info-grid two">' + panelBlock("star", "強み", list(t.strengths)) + panelBlock("warn", "気をつけたいところ", list(t.weak, true)) + "</div>" },
+      { id: "life", label: "恋愛・仕事", body: panelBlock("heart", "恋愛・人間関係", "<p>" + esc(t.love) + "</p>") +
+        panelBlock("work", "仕事・勉強のスタイル", "<p>" + esc(t.work) + "</p>") +
+        panelBlock("compass", "向いている仕事・活動", '<div class="chips">' + t.careers.map(function (c) { return '<span class="chip">' + esc(c) + "</span>"; }).join("") + "</div>") },
+      { id: "grow", label: "成長", body: panelBlock("cloud", "ストレスを感じると…", "<p>" + esc(t.stress) + "</p>") + panelBlock("sprout", "成長のヒント", "<p>" + esc(t.growth) + "</p>") },
+      { id: "match", label: "相性", body: '<p class="eyebrow">ベストパートナー</p><div class="compat-cards">' + compatBest + "</div>" +
+        '<p class="eyebrow" style="margin-top:var(--s2)">なかなか合う</p><div class="compat-mini">' + compatGood + "</div>" }
+    ];
+    var tabUi = '<section class="card" aria-label="タイプのくわしい解説">' +
+      '<div class="seg" role="tablist" aria-label="解説の切り替え">' + tabs.map(function (tb, i) {
+        return '<button type="button" role="tab" id="tab-' + tb.id + '" aria-controls="panel-' + tb.id + '" aria-selected="' + (i === 0) + '" tabindex="' + (i === 0 ? 0 : -1) + '">' + tb.label + "</button>";
+      }).join("") + "</div>" +
+      tabs.map(function (tb, i) {
+        return '<div class="tab-panel" role="tabpanel" id="panel-' + tb.id + '" aria-labelledby="tab-' + tb.id + '"' + (i ? " hidden" : "") + ">" + tb.body + "</div>";
+      }).join("") + "</section>";
 
     var shareText = isResult
       ? "わたしの性格タイプは【" + code + "｜" + t.nick + "】でした！\n" + t.catch + "\n" + hashtags()
@@ -547,60 +612,48 @@
 
     var html = '' +
       '<div class="' + g(code) + ' stack-lg">' +
-      '<section class="result-hero" aria-labelledby="typeTitle">' +
-      '<div class="result-label">' + heroLabel + "</div>" +
-      '<h1 id="typeTitle"><span class="type-code" aria-label="' + code + '" style="display:block">' + letters + "</span>" +
-      '<span class="type-nick" style="display:block">' + esc(t.nick) + "</span></h1>" +
-      '<p class="type-catch">「' + esc(t.catch) + "」</p>" +
-      '<div class="disc">' + animal(code, "animal", true) + "</div>" +
-      '<div class="hero-badges"><span class="badge">' + TF.GROUPS[grp].name + "</span>" +
-      '<span class="badge outline">' + esc(t.animal) + "タイプ</span>" +
-      (!isResult && mine === code ? '<span class="badge outline">あなたのタイプ</span>' : "") + "</div>" +
-      "</section>" +
+      '<article class="dx-card" aria-labelledby="typeTitle">' +
+      '<div class="dx-head"><span>' + (isResult ? "あなたの診断結果" : "タイプ解説") + '</span><span class="latin">' + TF.GROUPS[grp].en.toUpperCase() + "</span></div>" +
+      '<div class="dx-body">' +
+      '<h1 id="typeTitle" class="sr-only">' + code + " " + esc(t.nick) + "</h1>" +
+      '<div class="dx-code" aria-hidden="true">' + letters + "</div>" +
+      '<div class="dx-nick" aria-hidden="true">' + esc(t.nick) + "</div>" +
+      '<p class="dx-catch">「' + esc(t.catch) + "」</p>" +
+      '<div class="dx-art">' + animal(code, "animal", true) + "</div>" +
+      '<div class="dx-tags"><span class="badge">' + TF.GROUPS[grp].name + "</span>" +
+      '<span class="badge soft">' + esc(t.animal) + "タイプ</span>" +
+      (!isResult && mine === code ? '<span class="badge soft">あなたのタイプ</span>' : "") + "</div>" +
+      "</div>" +
+      '<div class="dx-foot">' + TF.navArt("zunda", { face: true, decorative: true }) + "<span>16タイプ せいかくラボ ・ 20問の性格診断</span></div>" +
+      "</article>" +
       pending +
       '<section aria-label="ナビゲーターのコメント">' + talk(t.talk) + "</section>" +
-      (res ? '<section class="card" aria-labelledby="axisTitle"><h2 class="section-title" id="axisTitle"><span class="dot"></span>あなたの傾き</h2>' + axisBars(res.axes) +
-        '<p class="small muted" style="margin-top:12px">50%に近い指標は、その日の気分で入れ替わることもあります。</p></section>' : "") +
-      (res ? '<section class="card share-card" aria-labelledby="shareTitle"><h2 id="shareTitle">結果をシェアするのだ！</h2>' + shareButtons(shareText, typeShareUrl(code), "result") + "</section>" : "") +
-      '<div class="info-grid">' +
-      infoCard("sparkle", t.title, "<p>" + esc(t.desc) + "</p>") +
-      "</div>" +
-      '<div class="info-grid two">' +
-      infoCard("star", "強み", list(t.strengths)) +
-      infoCard("warn", "気をつけたいところ", list(t.weak, true)) +
-      infoCard("heart", "恋愛・人間関係", "<p>" + esc(t.love) + "</p>") +
-      infoCard("work", "仕事・勉強のスタイル", "<p>" + esc(t.work) + "</p>") +
-      infoCard("cloud", "ストレスを感じると…", "<p>" + esc(t.stress) + "</p>") +
-      infoCard("sprout", "成長のヒント", "<p>" + esc(t.growth) + "</p>") +
-      "</div>" +
-      infoCard("compass", "向いている仕事・活動", '<div class="chips">' + t.careers.map(function (c) { return '<span class="chip">' + esc(c) + "</span>"; }).join("") + "</div>") +
-      '<section aria-labelledby="compatTitle"><h2 class="section-title" id="compatTitle"><span class="dot" style="background:var(--metan)"></span>相性のいいタイプ</h2>' +
-      '<p class="small muted" style="margin:-4px 0 10px">ベストパートナー</p>' +
-      '<div class="compat-cards">' + compatBest + "</div>" +
-      '<p class="small muted" style="margin:16px 0 0">なかなか合う</p>' +
-      '<div class="compat-mini">' + compatGood + "</div>" +
-      "</section>" +
+      (res ? '<section class="card" aria-labelledby="axisTitle"><h2 class="sec-title" id="axisTitle">あなたの傾き</h2>' + axisBars(res.axes) +
+        '<p class="small muted" style="margin-top:var(--s4)">50%に近い指標は、その日の気分で入れ替わることもあります。</p></section>' : "") +
+      (res ? '<section class="card" aria-labelledby="shareTitle"><h2 class="sec-title" id="shareTitle">結果をシェアする</h2>' + shareButtons(shareText, typeShareUrl(code), "result") + "</section>" : "") +
+      tabUi +
       (res
-        ? '<section class="card" aria-labelledby="friendTitle" style="background:var(--metan-soft)"><h2 class="section-title" id="friendTitle"><span class="dot" style="background:var(--metan)"></span>友達との相性を診断</h2>' +
-          '<p class="small" style="color:var(--ink-2)">このリンクを送ると、友達が診断したあとに、あなたとの相性がわかるのだ！</p>' +
-          '<div class="btn-row" style="margin-top:12px"><button class="btn btn-metan" type="button" data-share="friend" data-share-text="' + esc("わたしは" + code + "だったよ！ 相性を診断してみて！") + '" data-share-url="' + esc(friendUrl) + '">' + icon("users") + "相性診断を送る</button>" +
+        ? '<section class="card" aria-labelledby="friendTitle" style="background:var(--metan-tint);border-color:transparent"><h2 class="sec-title" id="friendTitle">友達との相性を診断</h2>' +
+          '<p class="small" style="color:var(--ink-2)">このリンクを送ると、友達が診断したあとに、あなたとの相性がわかるのだ。</p>' +
+          '<div class="btn-row" style="margin-top:var(--s4)"><button class="btn btn-metan" type="button" data-share="friend" data-share-text="' + esc("わたしは" + code + "だったよ！ 相性を診断してみて！") + '" data-share-url="' + esc(friendUrl) + '">' + icon("users") + "相性診断を送る</button>" +
           '<button class="btn" type="button" data-copy="' + esc(friendUrl) + '">' + icon("link") + "リンクをコピー</button></div></section>" +
           voteCard(code)
         : "") +
       (!isResult
-        ? '<section class="card share-card"><h2>このタイプをシェア</h2>' + shareButtons(shareText, typeShareUrl(code), "type") + "</section>" +
+        ? '<section class="card"><h2 class="sec-title">このタイプをシェア</h2>' + shareButtons(shareText, typeShareUrl(code), "type") + "</section>" +
           (mine && mine !== code
             ? '<a class="btn btn-metan btn-block btn-lg" href="#/compat?a=' + mine + "&b=" + code + '">' + icon("heart") + "あなた（" + mine + "）との相性を見る</a>"
-            : !mine ? '<button class="btn btn-metan btn-block btn-lg" type="button" data-action="restart">あなたも診断してみる' + icon("arrowR") + "</button>" : "")
+            : !mine ? '<button class="btn btn-zunda btn-block btn-lg" type="button" data-action="restart">あなたも診断してみる' + icon("arrowR") + "</button>" : "")
         : "") +
       '<div class="btn-row">' +
       (isResult ? '<button class="btn" type="button" data-action="restart">' + icon("refresh") + "もう一度診断</button>" : "") +
       '<a class="btn" href="#/types">' + icon("grid") + "16タイプ図鑑</a>" +
-      '<a class="btn btn-primary" href="#/fortune">' + icon("star") + "今日の運勢</a>" +
+      '<a class="btn btn-ink" href="#/fortune">' + icon("star") + "今日の運勢</a>" +
       "</div>" +
       "</div>";
     setView(html);
     bindCommon();
+    bindTabs();
 
     // 投票
     var voteBtn = main.querySelector('[data-action="vote"]');
@@ -627,22 +680,47 @@
     });
   }
 
+  // タブ（矢印キーで移動できる）
+  function bindTabs() {
+    var tabs = Array.prototype.slice.call(main.querySelectorAll('[role="tab"]'));
+    function select(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener("click", function () { select(tab, false); });
+      tab.addEventListener("keydown", function (e) {
+        var n = null;
+        if (e.key === "ArrowRight") n = tabs[(i + 1) % tabs.length];
+        else if (e.key === "ArrowLeft") n = tabs[(i - 1 + tabs.length) % tabs.length];
+        else if (e.key === "Home") n = tabs[0];
+        else if (e.key === "End") n = tabs[tabs.length - 1];
+        if (n) { e.preventDefault(); select(n, true); }
+      });
+    });
+  }
+
   // ============================================================
   //  16タイプ図鑑
   // ============================================================
   function renderTypes() {
     var mine = myType();
-    var html = '<div class="page-head"><span class="kicker">16 TYPES</span><h1 class="page-title">16タイプ図鑑</h1>' +
+    var html = '<div class="page-head"><span class="eyebrow">16 TYPES</span><h1 class="page-title">16タイプ図鑑</h1>' +
       '<p class="page-lead">4つのグループと、16の動物キャラクター。気になるタイプをタップしてね。</p></div>' +
       TF.GROUP_ORDER.map(function (gk) {
         var codes = TF.TYPE_ORDER.filter(function (c) { return TF.groupOf(c) === gk; });
         return '<section class="group-block g-' + gk + '" aria-labelledby="grp-' + gk + '">' +
-          '<div class="group-head"><div><h2 id="grp-' + gk + '">' + TF.GROUPS[gk].name + '<span class="small muted" style="margin-left:8px">' + TF.GROUPS[gk].en + "</span></h2><p>" + esc(TF.GROUPS[gk].desc) + "</p></div></div>" +
+          '<div class="group-head"><h2 id="grp-' + gk + '">' + TF.GROUPS[gk].name + '</h2><span class="latin">' + TF.GROUPS[gk].en + "</span><p>" + esc(TF.GROUPS[gk].desc) + "</p></div>" +
           '<div class="type-grid">' + codes.map(function (c) {
             var t = TYPES[c];
-            return '<a class="card card-link type-card" href="#/type/' + c + '">' +
+            return '<a class="card type-card" href="#/type/' + c + '">' +
               (mine === c ? '<span class="badge mine">あなた</span>' : "") +
-              '<div class="disc-md">' + animal(c) + "</div>" +
+              '<div class="art">' + animal(c) + "</div>" +
               '<div class="code">' + c + '</div><div class="nick">' + esc(t.nick) + '</div><div class="animal-name">' + esc(t.animal) + "</div></a>";
           }).join("") + "</div></section>";
       }).join("");
@@ -665,8 +743,8 @@
       var isMine = f.type === mine;
       return '<details class="card f-item ' + g(f.type) + (isMine ? " mine" : "") + '"' + (isMine ? " open" : "") + ' id="f-' + f.type + '">' +
         "<summary>" +
-        '<span class="rank-badge' + (f.rank <= 3 ? " r" + f.rank : "") + '" aria-label="' + f.rank + '位">' + f.rank + "</span>" +
-        '<div class="disc-sm" style="width:46px;height:46px">' + animal(f.type) + "</div>" +
+        '<span class="rank-badge" aria-label="' + f.rank + '位">' + f.rank + "</span>" +
+        '<div class="disc-sm">' + animal(f.type) + "</div>" +
         '<div class="f-main"><div class="f-code">' + f.type + "<small>" + esc(t.nick) + (isMine ? "（あなた）" : "") + "</small></div>" +
         '<div class="f-head">' + esc(f.headline) + "</div></div>" +
         icon("chevD", "chev") +
@@ -676,7 +754,7 @@
         "<span>仕事 " + starsHtml(f.stars.work) + "</span><span>金運 " + starsHtml(f.stars.money) + "</span></div>" +
         '<div class="lucky">' +
         "<div><b>ラッキーアイテム</b>" + esc(f.item) + "</div>" +
-        '<div><b>ラッキーカラー</b><span class="swatch" style="background:' + f.color.hex + '"></span>' + esc(f.color.name) + "</div>" +
+        '<div><b>ラッキーカラー</b><span><span class="swatch" style="background:' + f.color.hex + '"></span>' + esc(f.color.name) + "</span></div>" +
         '<div><b>ラッキータイプ</b><a class="text-link" href="#/type/' + f.luckyType + '">' + f.luckyType + "（" + esc(TYPES[f.luckyType].nick) + "）</a></div>" +
         "<div><b>今日のヒント</b>" + esc(f.advice) + "</div>" +
         "</div>" +
@@ -684,37 +762,50 @@
         "</div></details>";
     }
 
-    var head = '<div class="page-head"><span class="kicker">DAILY FORTUNE</span><h1 class="page-title">今日の16タイプ運勢</h1>' +
-      '<div class="fortune-date" style="margin-top:6px"><span style="font-weight:900">' + jpDate() + '</span><span class="countdown" id="countdown"></span></div></div>';
+    var order = [list[1], list[0], list[2]];
+    var podium = '<div class="podium" aria-label="今日のトップ3">' + order.map(function (f) {
+      return '<button type="button" class="' + g(f.type) + " r" + f.rank + '" data-open="' + f.type + '" style="all:unset;cursor:pointer;display:grid;justify-items:center;gap:4px">' +
+        '<span class="p-face">' + animal(f.type) + "</span>" +
+        '<span class="p-step"><span class="p-rank">' + f.rank + '</span><span class="p-code">' + f.type + '</span><span class="p-nick">' + esc(TYPES[f.type].nick) + "</span></span></button>";
+    }).join("") + "</div>";
+
+    var head = '<div class="page-head"><span class="eyebrow">DAILY FORTUNE</span><h1 class="page-title">今日の16タイプ運勢</h1>' +
+      '<div class="fortune-date"><span class="date">' + jpDate() + '</span><span class="countdown" id="countdown"></span></div></div>';
 
     var myCard = mineF
       ? '<section class="card my-fortune ' + g(mine) + '" aria-label="あなたの今日の運勢">' +
-        '<div style="display:flex;gap:14px;align-items:center">' +
-        '<div class="disc-sm" style="width:76px;height:76px;background:var(--surface)">' + animal(mine) + "</div>" +
-        '<div><div class="small" style="font-weight:900;color:var(--ink-2)">' + mine + "（" + esc(TYPES[mine].nick) + "）の今日の順位</div>" +
+        '<div style="display:flex;gap:var(--s4);align-items:center">' +
+        '<div class="disc-sm" style="width:76px;height:76px;background:var(--paper)">' + animal(mine) + "</div>" +
+        '<div><div class="small" style="font-weight:800;color:var(--ink-2)">' + mine + "（" + esc(TYPES[mine].nick) + "）の今日の順位</div>" +
         '<div class="rank-big">' + mineF.rank + "<small>位</small></div></div></div>" +
-        '<p style="margin-top:10px;font-weight:700">' + esc(mineF.headline) + "</p>" +
-        '<p class="small" style="margin-top:6px;color:var(--ink-2)">ラッキーアイテムは「' + esc(mineF.item) + "」。くわしくは下のリストをチェック！</p>" +
+        '<p style="margin-top:var(--s3);font-weight:800">' + esc(mineF.headline) + "</p>" +
+        '<p class="small" style="margin-top:var(--s1);color:var(--ink-2)">ラッキーアイテムは「' + esc(mineF.item) + "」。くわしくは下のリストで。</p>" +
         "</section>"
-      : '<section class="card" style="display:flex;gap:12px;align-items:center;background:var(--zunda-soft)">' + avatar("zunda", "happy") +
-        '<div style="flex:1"><b>診断すると、あなたの順位がひと目でわかるのだ！</b><div style="margin-top:8px"><button class="btn btn-sm btn-metan" type="button" data-action="restart">診断する（約3分）</button></div></div></section>';
+      : '<section class="card tint" style="display:flex;gap:var(--s3);align-items:center">' + avatar("zunda") +
+        '<div style="flex:1"><b>診断すると、あなたの順位がひと目でわかるのだ！</b><div style="margin-top:var(--s2)"><button class="btn btn-sm btn-zunda" type="button" data-action="restart">診断する（約3分）</button></div></div></section>';
 
-    var html = head + '<div class="stack" style="margin-top:12px">' + myCard +
-      '<div class="fortune-list">' + list.map(item).join("") + "</div>" +
-      '<section class="card soft center" style="margin-top:20px"><p style="font-weight:900">運勢は毎日0時に更新されるのだ。</p>' +
-      '<p class="small muted" style="margin-top:4px">毎日見に来て、ずんだスタンプを集めると「ひみつの会話」が解放されます。</p>' +
-      '<div class="btn-row" style="margin-top:12px"><a class="btn btn-sm" href="#/secrets">ひみつの会話を見る</a>' +
+    var html = head + '<div class="stack-lg">' + podium + myCard +
+      '<section aria-labelledby="allTitle"><div class="h-section"><h2 id="allTitle">16タイプの順位</h2></div><div class="fortune-list">' + list.map(item).join("") + "</div></section>" +
+      '<section class="card tint center"><p style="font-weight:800">運勢は毎日0時に更新されるのだ。</p>' +
+      '<p class="small muted" style="margin-top:var(--s1)">毎日見に来て、ずんだスタンプを集めると「ひみつの会話」が解放されます。</p>' +
+      '<div class="btn-row" style="margin-top:var(--s4);justify-content:center"><a class="btn btn-sm" href="#/secrets">ひみつの会話を見る</a>' +
       '<button class="btn btn-sm" type="button" data-share="fortune" data-share-text="' + esc("今日の16タイプ運勢" + (mineF ? "、" + mine + "は" + mineF.rank + "位だった！" : "ランキング！") + " " + hashtags()) + '" data-share-url="' + esc(appUrl("#/fortune")) + '">' + icon("share") + "シェア</button></div></section>" +
       "</div>";
     setView(html);
     bindCommon();
+    main.querySelectorAll("[data-open]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var d = document.getElementById("f-" + b.getAttribute("data-open"));
+        if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      });
+    });
 
     // 次の更新までのカウントダウン（日付が変わったら再描画）
     function tick() {
       var now = new Date();
       if (C.dateKey(now) !== key) { route(); return; }
-      var next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      var ms = next - now;
+      var nx = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      var ms = nx - now;
       var hh = Math.floor(ms / 3600000), mm = Math.floor((ms % 3600000) / 60000);
       var el = document.getElementById("countdown");
       if (el) el.innerHTML = "次の更新まで <b>" + hh + "</b>時間<b>" + mm + "</b>分";
@@ -741,7 +832,7 @@
     var selPref = query.get("pref") === "all" ? "all" : Number(query.get("pref")) || votedPref || 13;
     var selType = TYPES[String(query.get("type") || "").toUpperCase()] ? String(query.get("type")).toUpperCase() : mine || "INFP";
 
-    var head = '<div class="page-head"><span class="kicker">PREFECTURE RANKING</span><h1 class="page-title">都道府県タイプランキング</h1>' +
+    var head = '<div class="page-head"><span class="eyebrow">PREFECTURE RANKING</span><h1 class="page-title">都道府県タイプランキング</h1>' +
       '<p class="page-lead">あなたの県で多いのは、どのタイプ？ 地図のマスをタップしてね。</p></div>';
     var seg = '<div class="seg" role="group" aria-label="表示の切り替え">' +
       '<button type="button" data-tab="pref" aria-pressed="' + (tab === "pref") + '">県から見る</button>' +
@@ -816,7 +907,7 @@
 
     var detail = '<section class="card" aria-labelledby="prefTitle" id="prefDetail">' +
       '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">' +
-      '<h2 class="section-title" id="prefTitle" style="margin:0"><span class="dot"></span>' + esc(title) + "で多いタイプ</h2>" +
+      '<h2 class="sec-title" id="prefTitle">' + esc(title) + "で多いタイプ</h2>" +
       '<span class="small muted">回答 ' + fmt(r.total) + "人</span></div>" +
       (r.total === 0
         ? '<p class="muted" style="margin-top:12px">まだデータがないのだ。最初の1人になってほしいのだ！</p>'
@@ -846,7 +937,7 @@
       return '<button type="button" class="' + g(c) + '" data-type-go="' + c + '" aria-pressed="' + (c === selType) + '">' + c + "</button>";
     }).join("") + "</div>";
 
-    var legend = '<h3>' + selType + ' が<br>多い県ほど<br>色が濃いのだ</h3><div class="legend-items"><span>少 <i style="background:var(--surface-2)"></i><i style="background:color-mix(in srgb, var(--g) 50%, var(--surface))"></i><i style="background:var(--g)"></i> 多</span></div>';
+    var legend = '<h3>' + selType + ' が<br>多い県ほど<br>色が濃いのだ</h3><div class="legend-items"><span>少 <i style="background:var(--surface-2)"></i><i style="background:color-mix(in srgb, var(--g) 50%, var(--paper))"></i><i style="background:var(--g)"></i> 多</span></div>';
     var map = '<div class="' + g(selType) + '">' + tileMap(stats, {
       selected: null,
       legend: legend,
@@ -855,7 +946,7 @@
         if (!item) return { label: "データなし" };
         var k = maxPct === minPct ? 0.5 : (item.pct - minPct) / (maxPct - minPct);
         var mix = Math.round(10 + k * 85);
-        return { style: "background:color-mix(in srgb, var(--g) " + mix + "%, var(--surface));", label: pct1(item.pct) + "%" };
+        return { style: "background:color-mix(in srgb, var(--g) " + mix + "%, var(--paper));", label: pct1(item.pct) + "%" };
       }
     }) + "</div>";
 
@@ -882,10 +973,10 @@
     var mine = myType();
     if (store.vote && store.vote.type) return "";
     if (mine) {
-      return '<section class="card" style="background:var(--metan-soft);margin-top:14px;display:flex;gap:12px;align-items:center">' + avatar("metan", "smile") +
+      return '<section class="card" style="background:var(--metan-tint);margin-top:14px;display:flex;gap:12px;align-items:center">' + avatar("metan", "smile") +
         '<div style="flex:1"><b>あなたの1票で、ランキングが変わるわよ。</b><div style="margin-top:8px"><a class="btn btn-sm btn-metan" href="#/result">結果ページから参加する</a></div></div></section>';
     }
-    return '<section class="card" style="background:var(--zunda-soft);margin-top:14px;display:flex;gap:12px;align-items:center">' + avatar("zunda", "happy") +
+    return '<section class="card" style="background:var(--zunda-tint);margin-top:14px;display:flex;gap:12px;align-items:center">' + avatar("zunda", "happy") +
       '<div style="flex:1"><b>診断すると、ランキングに参加できるのだ！</b><div style="margin-top:8px"><button class="btn btn-sm btn-metan" type="button" data-action="restart">診断する（約3分）</button></div></div></section>';
   }
 
@@ -945,18 +1036,18 @@
     };
     var slot = function (id, code, label) {
       return '<div class="compat-slot' + (code ? " " + g(code) : "") + '">' +
-        '<div class="disc-md">' + (code ? animal(code) : '<span style="font-family:var(--font-display);font-size:40px;color:var(--ink-3)">?</span>') + "</div>" +
-        '<label><span class="sr-only">' + label + '</span><select id="' + id + '">' + (code ? "" : '<option value="">えらぶ</option>') + options(code) + "</select></label></div>";
+        '<div class="art">' + (code ? animal(code) : '<span class="latin" style="font-size:2.4rem;font-weight:700;color:var(--ink-3)">?</span>') + "</div>" +
+        '<label><span class="sr-only">' + label + '</span><select class="select" id="' + id + '">' + (code ? "" : '<option value="">えらぶ</option>') + options(code) + "</select></label></div>";
     };
 
-    var html = '<div class="page-head"><span class="kicker">COMPATIBILITY</span><h1 class="page-title">相性チェック</h1>' +
+    var html = '<div class="page-head"><span class="eyebrow">COMPATIBILITY</span><h1 class="page-title">相性チェック</h1>' +
       '<p class="page-lead">ふたりのタイプを選ぶと、ずんだもんとめたんが相性を判定するのだ。</p></div>' +
-      '<div class="stack" style="margin-top:14px">';
+      '<div class="stack">';
 
     if (invited) {
-      html += '<section class="card" style="background:var(--metan-soft)">' +
+      html += '<section class="card" style="background:var(--metan-tint);border-color:transparent">' +
         talk([{ who: "metan", face: "smile", text: "友達（" + a + "）から相性診断が届いているわよ。" }, { who: "zunda", face: "happy", text: "あなたのタイプを選ぶか、まだの人は診断してほしいのだ！" }]) +
-        '<div class="btn-row" style="margin-top:14px"><button class="btn btn-metan" type="button" data-action="compat-diagnose" data-a="' + a + '">診断して相性を見る' + icon("arrowR") + "</button></div></section>";
+        '<div class="btn-row" style="margin-top:var(--s4)"><button class="btn btn-zunda" type="button" data-action="compat-diagnose" data-a="' + a + '">診断して相性を見る' + icon("arrowR") + "</button></div></section>";
     }
 
     html += '<section class="card"><div class="compat-pick">' + slot("compatA", a, "1人目のタイプ") + '<span class="compat-x" aria-hidden="true">×</span>' + slot("compatB", b, "2人目のタイプ") + "</div></section>";
@@ -965,25 +1056,25 @@
       var r = C.compat(a, b);
       var lv = TF.COMPAT_LEVELS[r.level];
       var url = appUrl("#/compat?a=" + a + "&b=" + b);
-      html += '<section class="card center" aria-labelledby="compatResult">' +
+      html += '<section class="card center score" aria-labelledby="compatResult">' +
         '<div class="score-ring" style="--p:' + r.score + '" role="img" aria-label="相性 ' + r.score + '%"><div><span><small>相性</small><b>' + r.score + "</b><small>%</small></span></div></div>" +
-        '<h2 id="compatResult" style="font-size:22px">' + esc(lv.label) + "</h2>" +
-        (r.why ? '<p style="margin-top:6px;color:var(--ink-2)">' + esc(r.why) + "</p>" : "") +
+        '<h2 id="compatResult">' + esc(lv.label) + "</h2>" +
+        (r.why ? '<p style="color:var(--ink-2)">' + esc(r.why) + "</p>" : "") +
         "</section>" +
-        '<section class="card"><h2 class="section-title"><span class="dot"></span>4つの指標で見ると…</h2><div class="axis-notes">' +
+        '<section class="card"><h2 class="sec-title">4つの指標で見ると…</h2><div class="axis-notes">' +
         r.axes.map(function (n) {
           return '<div class="axis-note"><span class="tag ' + (n.same ? "same" : "diff") + '">' + (n.same ? "同じ" : "ちがう") + "</span><div><b>" + esc(n.title) + "</b><br>" + esc(n.text) + "</div></div>";
         }).join("") + "</div></section>" +
         "<section>" + talk(COMPAT_TALK[r.level]) + "</section>" +
-        '<section class="card share-card"><h2>この相性をシェア</h2>' +
+        '<section class="card"><h2 class="sec-title">この相性をシェア</h2>' +
         shareButtons(a + "（" + TYPES[a].nick + "）× " + b + "（" + TYPES[b].nick + "）の相性は " + r.score + "%！ " + hashtags(), url, "compat") + "</section>";
     }
 
     if (mine) {
       var friendUrl = appUrl("#/compat?a=" + mine);
-      html += '<section class="card" style="background:var(--zunda-soft)"><h2 class="section-title"><span class="dot"></span>友達に相性診断を送る</h2>' +
+      html += '<section class="card" style="background:var(--zunda-tint);border-color:transparent"><h2 class="sec-title">友達に相性診断を送る</h2>' +
         '<p class="small" style="color:var(--ink-2)">リンクを開いた友達が診断すると、あなた（' + mine + "）との相性が表示されるのだ！</p>" +
-        '<div class="btn-row" style="margin-top:12px;justify-content:flex-start"><button class="btn btn-zunda" type="button" data-share="friend" data-share-text="' + esc("わたしは" + mine + "だったよ！ 相性を診断してみて！") + '" data-share-url="' + esc(friendUrl) + '">' + icon("users") + "送る</button>" +
+        '<div class="btn-row" style="margin-top:var(--s4)"><button class="btn btn-zunda" type="button" data-share="friend" data-share-text="' + esc("わたしは" + mine + "だったよ！ 相性を診断してみて！") + '" data-share-url="' + esc(friendUrl) + '">' + icon("users") + "送る</button>" +
         '<button class="btn" type="button" data-copy="' + esc(friendUrl) + '">' + icon("link") + "リンクをコピー</button></div></section>";
     }
     html += "</div>";
@@ -1011,13 +1102,13 @@
   // ============================================================
   function renderSecrets() {
     var vs = C.visitStats(store.visits);
-    var html = '<div class="page-head"><span class="kicker">SECRET TALKS</span><h1 class="page-title">ひみつの会話</h1>' +
+    var html = '<div class="page-head"><span class="eyebrow">SECRET TALKS</span><h1 class="page-title">ひみつの会話</h1>' +
       '<p class="page-lead">サイトに来た日数（合計 <b>' + vs.total + "日</b>）に応じて、ずんだもんとめたんの会話が解放されるのだ。</p></div>" +
-      '<div class="stack" style="margin-top:14px">' + stampCard() +
+      '<div class="stack">' + stampCard() +
       TF.SECRETS.map(function (s, i) {
         var open = s.need <= vs.total;
         if (!open) {
-          return '<div class="card secret locked"><div style="display:flex;gap:12px;align-items:center;padding:14px 16px">' + icon("lock", "lock") +
+          return '<div class="card secret locked"><div class="row">' + icon("lock", "lock") +
             "<span>？？？</span><span class=\"need\">あと" + (s.need - vs.total) + "日で解放</span></div></div>";
         }
         return '<details class="card secret"' + (i === 0 ? " open" : "") + "><summary>" + icon("unlock", "lock") + "<span>" + esc(s.title) + '</span><span class="need">' + s.need + "日目</span></summary>" +
@@ -1031,31 +1122,34 @@
   //  この診断について
   // ============================================================
   function renderAbout() {
-    var html = '<div class="page-head"><span class="kicker">ABOUT</span><h1 class="page-title">この診断について</h1></div>' +
-      '<div class="stack" style="margin-top:14px">' +
-      '<section class="card prose"><h2 class="section-title"><span class="dot"></span>どんな診断？</h2>' +
+    var html = '<div class="page-head"><span class="eyebrow">ABOUT</span><h1 class="page-title">この診断について</h1></div>' +
+      '<div class="stack-lg">' +
+      '<div class="nav-duo">' +
+      '<figure>' + TF.navArt("zunda", {}) + '<figcaption>ずんだもん</figcaption></figure>' +
+      '<figure class="metan">' + TF.navArt("metan", {}) + '<figcaption>四国めたん</figcaption></figure></div>' +
+      '<section class="card prose"><h2 class="sec-title">どんな診断？</h2>' +
       "<p>「外向／内向」など4つの指標それぞれについて、あなたがどちら寄りかを20問の回答から計算し、16タイプのどれに近いかを判定します。</p>" +
       "<p>各指標は5問ずつ。「とてもそう思う」〜「まったくそう思わない」の5段階の回答を点数にして、どちらにどれくらい傾いているかを％で表示しています。</p></section>" +
-      '<section><h2 class="section-title"><span class="dot" style="background:var(--metan)"></span>4つの指標</h2><div class="axis-explain">' +
+      '<section><h2 class="sec-title">4つの指標</h2><div class="axis-explain">' +
       TF.AXES.map(function (ax) {
-        return '<div class="card"><b style="font-size:16px">' + esc(ax.title) + '</b><div class="pair">' +
+        return '<div class="card"><b>' + esc(ax.title) + '</b><div class="pair">' +
           [ax.left, ax.right].map(function (l) {
             return '<div class="pole"><b><span>' + l + "</span>" + ax.names[l] + "</b>" + esc(ax.desc[l]) + "</div>";
           }).join("") + "</div></div>";
       }).join("") + "</div></section>" +
-      '<section class="card prose"><h2 class="section-title"><span class="dot"></span>4つのグループ</h2>' +
+      '<section class="card prose"><h2 class="sec-title">4つのグループ</h2>' +
       TF.GROUP_ORDER.map(function (gk) { return '<p class="g-' + gk + '"><b style="color:var(--g-ink)">' + TF.GROUPS[gk].name + "</b>：" + esc(TF.GROUPS[gk].desc) + "</p>"; }).join("") + "</section>" +
-      '<section class="card prose"><h2 class="section-title"><span class="dot"></span>ご注意</h2>' +
+      '<section class="card prose"><h2 class="sec-title">ご注意</h2>' +
       "<p>この診断はエンターテインメントを目的とした非公式のものです。結果はあなたの性格の一面を切り取ったもので、能力や適性を決めつけるものではありません。</p>" +
       "<p>MBTI<sup>®</sup>は The Myers-Briggs Company の登録商標です。本サイトは同社および公式のMBTI検査とは関係ありません。タイプ名・キャラクター・解説文はすべて本サイトのオリジナルです。</p>" +
       "<p>都道府県ランキングは、このサイトで診断した人の任意の投票をもとにした集計です。回答者の偏りがあるため、統計的に正確な分布ではありません。</p></section>" +
-      '<section class="card"><h2 class="section-title"><span class="dot"></span>ナビゲーター</h2>' +
+      '<section class="card"><h2 class="sec-title">ナビゲーター</h2>' +
       talk([
         { who: "zunda", face: "happy", text: "ずんだもんなのだ！ ずんだ餅の妖精なのだ。" },
         { who: "metan", face: "smile", text: "四国めたんよ。この子のお目付け役ってところね。" }
       ]) +
-      '<p class="small muted" style="margin-top:14px">ずんだもん・四国めたん © <a class="text-link" href="https://zunko.jp/guideline.html" target="_blank" rel="noopener">東北ずん子・ずんだもんプロジェクト</a>（SSS合同会社）。本サイトのイラストはキャラクター利用ガイドラインに基づくファンアートであり、公式とは関係ありません。</p></section>' +
-      '<div class="btn-row"><button class="btn btn-metan btn-lg" type="button" data-action="restart">診断をはじめる' + icon("arrowR") + "</button></div>" +
+      '<p class="small muted" style="margin-top:var(--s4)">ずんだもん・四国めたん © <a class="text-link" href="https://zunko.jp/guideline.html" target="_blank" rel="noopener">東北ずん子・ずんだもんプロジェクト</a>（SSS合同会社）。キャラクター利用ガイドラインに基づいて使用しており、公式のサービスではありません。</p></section>' +
+      '<div class="btn-row"><button class="btn btn-zunda btn-lg" type="button" data-action="restart">診断をはじめる' + icon("arrowR") + "</button></div>" +
       "</div>";
     setView(html);
     bindCommon();
