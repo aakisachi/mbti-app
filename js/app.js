@@ -873,14 +873,46 @@
   }
 
   function tileMap(stats, opts) {
-    // opts.color(pref) -> { cls, style, code }
+    // opts.color(pref) -> { cls, style, code, label, tip }
     var tiles = TF.PREFECTURES.map(function (p) {
       var c = opts.color(p);
       var span = p.w ? "grid-column:" + (p.x + 1) + " / span " + p.w + ";grid-row:" + (p.y + 1) + " / span " + p.h + ";" : "grid-column:" + (p.x + 1) + ";grid-row:" + (p.y + 1) + ";";
-      return '<button type="button" class="jtile ' + (c.cls || "") + (p.w ? " big" : "") + (store.vote && store.vote.pref === p.code ? " mine" : "") + '" style="' + span + (c.style || "") + '" data-pref="' + p.code + '" aria-pressed="' + (opts.selected === p.code) + '" aria-label="' + p.name + (c.label ? "：" + c.label : "") + '">' +
-        "<span>" + p.short + (c.code ? '<span class="t-code">' + c.code + "</span>" : "") + "</span></button>";
+      var cls = "jtile " + (c.cls || "") + (p.w ? " big" : "") + (p.short.length > 2 && !p.w ? " long" : "") + (store.vote && store.vote.pref === p.code ? " mine" : "");
+      return '<button type="button" class="' + cls + '" style="' + span + (c.style || "") + '" data-pref="' + p.code + '"' +
+        ' data-tip-name="' + esc(p.name) + '" data-tip="' + esc(c.tip || c.label || "") + '"' + (c.code ? ' data-tip-type="' + c.code + '"' : "") +
+        ' aria-pressed="' + (opts.selected === p.code) + '" aria-label="' + p.name + (c.label ? "：" + c.label : "") + '">' +
+        "<span>" + p.short + "</span></button>";
     }).join("");
-    return '<div class="map-wrap"><div class="jmap">' + tiles + "</div>" + '<div class="map-legend">' + opts.legend + "</div></div>";
+    return '<div class="map-legend">' + opts.legend + "</div>" +
+      '<div class="map-wrap"><div class="jmap">' + tiles + '</div><div class="map-tip" aria-hidden="true" hidden></div></div>' +
+      '<p class="map-hint small muted">マスにカーソルを合わせると、くわしく表示されるのだ。</p>';
+  }
+
+  // 地図のマスにカーソル（またはフォーカス）を当てたとき、大きな吹き出しで中身を見せる
+  function bindMapTips() {
+    main.querySelectorAll(".map-wrap").forEach(function (wrap) {
+      var tip = wrap.querySelector(".map-tip");
+      function show(tile) {
+        var type = tile.getAttribute("data-tip-type");
+        tip.innerHTML = (type ? '<span class="tip-art ' + g(type) + '">' + animal(type) + "</span>" : "") +
+          '<span class="tip-text"><b>' + esc(tile.getAttribute("data-tip-name")) + "</b>" +
+          "<span>" + esc(tile.getAttribute("data-tip") || "データなし") + "</span></span>";
+        tip.hidden = false;
+        var x = tile.offsetLeft + tile.offsetWidth / 2;
+        var half = tip.offsetWidth / 2;
+        x = Math.max(half, Math.min(wrap.clientWidth - half, x));
+        var above = tile.offsetTop - tip.offsetHeight - 8;
+        tip.style.left = x + "px";
+        tip.style.top = (above < 0 ? tile.offsetTop + tile.offsetHeight + 8 : above) + "px";
+      }
+      function hide() { tip.hidden = true; }
+      wrap.querySelectorAll(".jtile").forEach(function (tile) {
+        tile.addEventListener("pointerenter", function (e) { if (e.pointerType !== "touch") show(tile); });
+        tile.addEventListener("pointerleave", hide);
+        tile.addEventListener("focus", function () { if (kbMode) show(tile); });
+        tile.addEventListener("blur", hide);
+      });
+    });
   }
 
   function rankRows(list, limit, mine) {
@@ -896,7 +928,7 @@
 
   function prefView(stats, selPref) {
     var mine = myType();
-    var legend = '<h3>色は、その県で<br>いちばん多いタイプの<br>グループなのだ</h3><div class="legend-items">' +
+    var legend = '<h3>色は、その県でいちばん多いタイプのグループ</h3><div class="legend-items">' +
       TF.GROUP_ORDER.map(function (gk) { return '<span class="g-' + gk + '"><i></i>' + TF.GROUPS[gk].name + "</span>"; }).join("") + "</div>";
     var map = tileMap(stats, {
       selected: selPref,
@@ -904,8 +936,8 @@
       color: function (p) {
         var r = C.rankCounts(stats.prefs[p.code]);
         if (!r.total) return { cls: "", label: "データなし" };
-        var top = r.list[0].type;
-        return { cls: g(top), code: top, label: "1位 " + top };
+        var top = r.list[0];
+        return { cls: g(top.type), code: top.type, label: "1位 " + top.type, tip: "1位 " + top.type + "（" + TYPES[top.type].nick + "）" + pct1(top.pct) + "%" };
       }
     });
 
@@ -947,7 +979,7 @@
       return '<button type="button" class="' + g(c) + '" data-type-go="' + c + '" aria-pressed="' + (c === selType) + '">' + c + "</button>";
     }).join("") + "</div>";
 
-    var legend = '<h3>' + selType + ' が<br>多い県ほど<br>色が濃いのだ</h3><div class="legend-items"><span>少 <i style="background:var(--surface-2)"></i><i style="background:color-mix(in srgb, var(--g) 50%, var(--paper))"></i><i style="background:var(--g)"></i> 多</span></div>';
+    var legend = '<h3>' + selType + '（' + esc(t.nick) + '）が多い県ほど色が濃い</h3><div class="legend-items"><span>少 <i style="background:color-mix(in srgb, var(--g) 10%, var(--paper))"></i><i style="background:color-mix(in srgb, var(--g) 50%, var(--paper))"></i><i style="background:var(--g)"></i> 多</span></div>';
     var map = '<div class="' + g(selType) + '">' + tileMap(stats, {
       selected: null,
       legend: legend,
@@ -956,7 +988,7 @@
         if (!item) return { label: "データなし" };
         var k = maxPct === minPct ? 0.5 : (item.pct - minPct) / (maxPct - minPct);
         var mix = Math.round(10 + k * 85);
-        return { style: "background:color-mix(in srgb, var(--g) " + mix + "%, var(--paper));", label: pct1(item.pct) + "%" };
+        return { style: "background:color-mix(in srgb, var(--g) " + mix + "%, var(--paper));" + (k > 0.6 ? "color:var(--g-on);" : ""), label: pct1(item.pct) + "%", tip: selType + " " + pct1(item.pct) + "%（" + item.rank + "位 / 47）", code: selType };
       }
     }) + "</div>";
 
@@ -992,6 +1024,7 @@
 
   function bindRanking(stats, tab, selPref, selType) {
     bindCommon();
+    bindMapTips();
     main.querySelectorAll("[data-pref]").forEach(function (b) {
       b.addEventListener("click", function () {
         var code = Number(b.getAttribute("data-pref"));

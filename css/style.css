@@ -589,24 +589,43 @@ a.card:active, .card-link:active { transform: translateY(2px); box-shadow: none;
 
 /* ---------- 都道府県ランキング ---------- */
 .map-wrap { position: relative; }
-.jmap { display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr); gap: 3px; aspect-ratio: 1; width: 100%; max-width: 100%; }
+.jmap {
+  container-type: inline-size;
+  display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr);
+  gap: 3px; aspect-ratio: 1; width: 100%; max-width: 100%;
+}
 .jtile {
   display: grid; place-items: center; min-width: 0; padding: 0; border: 0; border-radius: 6px;
-  background: color-mix(in srgb, var(--g, var(--line-strong)) 34%, var(--paper));
-  font-size: clamp(8px, 2.2vw, 12px); font-weight: 800; line-height: 1.05; color: var(--ink); text-align: center; overflow: hidden;
-  transition: transform 0.12s ease;
+  background: color-mix(in srgb, var(--g, var(--line-strong)) 38%, var(--paper));
+  /* マスの幅に合わせて文字サイズを決める（2文字がちょうど収まる大きさ） */
+  font-size: 3.1cqw; font-weight: 800; line-height: 1; color: var(--ink); text-align: center;
+  white-space: nowrap; overflow: hidden;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.jtile .t-code { display: none; font-family: var(--f-latin); font-weight: 700; font-size: 0.85em; color: var(--g-ink); }
-.jtile:hover { transform: scale(1.12); z-index: 2; position: relative; }
+.jtile.long { font-size: 2.3cqw; }
+.jtile.big { font-size: 5cqw; }
+.jtile:hover, .jtile:focus-visible { transform: scale(1.35); z-index: 4; position: relative; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
 .jtile[aria-pressed="true"] { outline: 3px solid var(--metan); outline-offset: 1px; z-index: 3; position: relative; }
 .jtile.mine { box-shadow: inset 0 0 0 2px var(--metan); }
-.jtile.big { font-size: clamp(11px, 3vw, 16px); }
-@media (min-width: 560px) { .jtile .t-code { display: block; } }
-.map-legend { position: absolute; left: 0; top: 0; width: 62%; display: grid; gap: 6px; font-size: var(--t-xs); font-weight: 700; }
-.map-legend h3 { font-family: var(--f-display); font-weight: 400; font-size: clamp(0.95rem, 4vw, 1.2rem); line-height: 1.4; }
-.legend-items { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.map-tip {
+  position: absolute; z-index: 6; transform: translateX(-50%); pointer-events: none;
+  display: flex; align-items: center; gap: 10px; white-space: nowrap;
+  background: var(--ink); color: var(--paper); border-radius: 14px; padding: 8px 14px 8px 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.map-tip[hidden] { display: none; }
+.map-tip .tip-art { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+.map-tip .tip-art .animal { width: 88%; height: 88%; }
+.map-tip .tip-text { display: grid; line-height: 1.35; }
+.map-tip b { font-size: 1.1rem; }
+.map-tip .tip-text span { font-size: 0.9rem; font-weight: 700; }
+.map-hint { margin-top: var(--s2); }
+@media (hover: none) { .map-hint { display: none; } }
+.map-legend { display: grid; gap: 6px; font-size: var(--t-xs); font-weight: 700; margin-bottom: var(--s3); }
+.map-legend h3 { font-family: var(--f-display); font-weight: 400; font-size: var(--t-md); line-height: 1.4; }
+.legend-items { display: flex; flex-wrap: wrap; gap: 6px 12px; }
 .legend-items span { display: inline-flex; align-items: center; gap: 4px; }
-.legend-items i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; background: color-mix(in srgb, var(--g, var(--line-strong)) 34%, var(--paper)); }
+.legend-items i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; background: color-mix(in srgb, var(--g, var(--line-strong)) 38%, var(--paper)); }
 .rank-rows { display: grid; gap: var(--s2); }
 .rank-row { display: grid; grid-template-columns: 26px 44px 1fr; gap: 10px; align-items: center; }
 .rank-row .rn { font-family: var(--f-latin); font-weight: 700; text-align: center; color: var(--ink-3); }
