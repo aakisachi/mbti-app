@@ -79,7 +79,7 @@ npm run build:og       # og/*.png を作り直す（CHROMIUM_PATH で Chromium �
 ## クレジット・注意
 
 - 本サイトはエンターテインメントを目的とした非公式の性格診断です。
-- 16タイプと動物の組み合わせ・キャッチコピー・豆知識は、動画「全16タイプを動物に例えると【MBTI動物図鑑】」に合わせています。動画のURLを `js/config.js` の `ANIMAL_VIDEO_URL` に入れると、各タイプのページに動画へのボタンが出ます。
-- MBTI® は The Myers-Briggs Company の登録商標です。本サイトは同社および公式のMBTI検査とは関係ありません。タイプのニックネーム・動物のイラスト・解説文はオリジナルです。
+- タイプの呼び名・動物の組み合わせ・キャッチコピー・豆知識は、動画「[全16タイプを動物に例えると【MBTI動物図鑑】](https://youtu.be/BtRgBOsQQQw)」に合わせています（`js/config.js` の `ANIMAL_VIDEO_URL`）。
+- MBTI® は The Myers-Briggs Company の登録商標です。本サイトは同社および公式のMBTI検査とは関係ありません。動物のイラストと解説文はオリジナルです。
 - ずんだもん・四国めたん © 東北ずん子・ずんだもんプロジェクト（SSS合同会社）。[キャラクター利用ガイドライン](https://zunko.jp/guideline.html)に基づいて使用しています。ナビゲーターのイラストは `img/` の画像です。画像の入手元に別の規約やクレジット表記の指定がある場合は、それに従ってフッターにも追記してください。商用利用する場合などは、必ず最新のガイドラインを確認してください。
 - フォント：[Mochiy Pop One](https://fonts.google.com/specimen/Mochiy+Pop+One)、[M PLUS Rounded 1c](https://fonts.google.com/specimen/M+PLUS+Rounded+1c)、[Fredoka](https://fonts.google.com/specimen/Fredoka)（SIL Open Font License）

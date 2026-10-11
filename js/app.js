@@ -78,7 +78,8 @@
     map: '<path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
     grid: '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>',
     sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>',
-    vote: '<path d="M4 13h16v7H4zM8 13V4h8v9"/><path d="M10.5 8l1.2 1.2L14 7"/>'
+    vote: '<path d="M4 13h16v7H4zM8 13V4h8v9"/><path d="M10.5 8l1.2 1.2L14 7"/>',
+    play: '<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/>'
   };
   function icon(name, cls) {
     return '<svg class="' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || "") + "</svg>";
@@ -633,7 +634,7 @@
       '<h2 class="sec-title" id="memoTitle">なぜ' + esc(t.animal) + '？</h2>' +
       '<p><span class="fact-badge">' + icon("sparkle") + esc(t.fact.title) + "</span></p>" +
       "<p>" + esc(t.fact.text) + "</p>" +
-      (TF.CONFIG.ANIMAL_VIDEO_URL ? '<a class="btn btn-sm" href="' + esc(TF.CONFIG.ANIMAL_VIDEO_URL) + '" target="_blank" rel="noopener">動物図鑑の動画を見る</a>' : "") +
+      (TF.CONFIG.ANIMAL_VIDEO_URL ? '<a class="btn btn-sm" href="' + esc(TF.CONFIG.ANIMAL_VIDEO_URL) + '" target="_blank" rel="noopener">' + icon("play") + "動画「MBTI動物図鑑」で見る</a>" : "") +
       "</section>" +
       (res ? '<section class="card" aria-labelledby="axisTitle"><h2 class="sec-title" id="axisTitle">あなたの傾き</h2>' + axisBars(res.axes) +
         '<p class="small muted" style="margin-top:var(--s4)">50%に近い指標は、その日の気分で入れ替わることもあります。</p></section>' : "") +
@@ -718,7 +719,9 @@
   function renderTypes() {
     var mine = myType();
     var html = '<div class="page-head"><span class="eyebrow">16 TYPES</span><h1 class="page-title">16タイプ図鑑</h1>' +
-      '<p class="page-lead">4つのグループと、16の動物キャラクター。気になるタイプをタップしてね。</p></div>' +
+      '<p class="page-lead">4つのグループと、16の動物。動画「MBTI動物図鑑」と同じ16匹です。気になるタイプをタップしてね。</p>' +
+      (TF.CONFIG.ANIMAL_VIDEO_URL ? '<div class="btn-row"><a class="btn btn-sm" href="' + esc(TF.CONFIG.ANIMAL_VIDEO_URL) + '" target="_blank" rel="noopener">' + icon("play") + "動画で見る（YouTube）</a></div>" : "") +
+      "</div>" +
       TF.GROUP_ORDER.map(function (gk) {
         var codes = TF.TYPE_ORDER.filter(function (c) { return TF.groupOf(c) === gk; });
         return '<section class="group-block g-' + gk + '" aria-labelledby="grp-' + gk + '">' +
@@ -1148,7 +1151,7 @@
       TF.GROUP_ORDER.map(function (gk) { return '<p class="g-' + gk + '"><b style="color:var(--g-ink)">' + TF.GROUPS[gk].name + "</b>：" + esc(TF.GROUPS[gk].desc) + "</p>"; }).join("") + "</section>" +
       '<section class="card prose"><h2 class="sec-title">ご注意</h2>' +
       "<p>この診断はエンターテインメントを目的とした非公式のものです。結果はあなたの性格の一面を切り取ったもので、能力や適性を決めつけるものではありません。</p>" +
-      "<p>MBTI<sup>®</sup>は The Myers-Briggs Company の登録商標です。本サイトは同社および公式のMBTI検査とは関係ありません。タイプ名・キャラクター・解説文はすべて本サイトのオリジナルです。</p>" +
+      "<p>MBTI<sup>®</sup>は The Myers-Briggs Company の登録商標です。本サイトは同社および公式のMBTI検査とは関係ありません。タイプの呼び名と動物の組み合わせは、動画「MBTI動物図鑑」と同じものを使っています。動物のイラストと解説文は本サイトのオリジナルです。</p>" +
       "<p>都道府県ランキングは、このサイトで診断した人の任意の投票をもとにした集計です。回答者の偏りがあるため、統計的に正確な分布ではありません。</p></section>" +
       '<section class="card"><h2 class="sec-title">ナビゲーター</h2>' +
       talk([

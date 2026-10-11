@@ -90,12 +90,14 @@ test("16タイプすべてに必要なデータがそろっている", () => {
   assert.equal(animals.size, 16, "動物が重複していない");
 });
 
-test("他サイトの有名な呼び名（16Personalities）を使っていない", () => {
-  const taken = ["建築家", "論理学者", "指揮官", "討論者", "提唱者", "仲介者", "主人公", "運動家", "管理者", "擁護者", "幹部", "領事", "巨匠", "冒険家", "起業家", "エンターテイナー"];
-  TF.TYPE_ORDER.forEach((code) => {
-    const nick = TF.TYPES[code].nick;
-    taken.forEach((w) => assert.ok(!nick.includes(w), `${code}: ${nick}`));
-  });
+test("タイプの呼び名は動画「MBTI動物図鑑」と同じ", () => {
+  const names = {
+    INTJ: "建築家", INTP: "論理学者", ENTJ: "指揮官", ENTP: "討論者",
+    INFJ: "提唱者", INFP: "仲介者", ENFJ: "主人公", ENFP: "運動家",
+    ISTJ: "管理者", ISFJ: "擁護者", ESTJ: "幹部", ESFJ: "領事",
+    ISTP: "巨匠", ISFP: "冒険家", ESTP: "起業家", ESFP: "エンターテイナー"
+  };
+  Object.keys(names).forEach((code) => assert.equal(TF.TYPES[code].nick, names[code], code));
 });
 
 test("動物は動画「MBTI動物図鑑」と同じ組み合わせ", () => {

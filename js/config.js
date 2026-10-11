@@ -18,7 +18,7 @@ TF.CONFIG = {
 
   // 動画「全16タイプを動物に例えると【MBTI動物図鑑】」のURL（YouTubeなど）。
   // 設定すると、各タイプの「なぜこの動物？」に動画へのボタンが出ます。
-  ANIMAL_VIDEO_URL: "",
+  ANIMAL_VIDEO_URL: "https://youtu.be/BtRgBOsQQQw",
 
   // シェア時のハッシュタグ
   HASHTAGS: ["せいかくラボ", "16タイプ診断"]
