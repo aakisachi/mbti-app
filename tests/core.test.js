@@ -70,6 +70,10 @@ test("16タイプすべてに必要なデータがそろっている", () => {
   assert.equal(TF.TYPE_ORDER.length, 16);
   assert.equal(new Set(TF.TYPE_ORDER).size, 16);
   const keys = ["animal", "nick", "catch", "title", "desc", "strengths", "weak", "love", "work", "stress", "growth", "careers", "best", "good", "talk"];
+  TF.TYPE_ORDER.forEach((code) => {
+    const f = TF.TYPES[code].fact;
+    assert.ok(f && f.title && f.text, `${code}.fact`);
+  });
   const nicks = new Set();
   const animals = new Set();
   TF.TYPE_ORDER.forEach((code) => {
@@ -92,6 +96,16 @@ test("他サイトの有名な呼び名（16Personalities）を使っていな�
     const nick = TF.TYPES[code].nick;
     taken.forEach((w) => assert.ok(!nick.includes(w), `${code}: ${nick}`));
   });
+});
+
+test("動物は動画「MBTI動物図鑑」と同じ組み合わせ", () => {
+  const zukan = {
+    INTJ: "カラス", INTP: "タコ", ENTJ: "シャチ", ENTP: "キツネ",
+    INFJ: "オオカミ", INFP: "ハムスター", ENFJ: "ゾウ", ENFP: "カワウソ",
+    ISTJ: "ビーバー", ISFJ: "秋田犬", ESTJ: "ボーダーコリー", ESFJ: "カピバラ",
+    ISTP: "ラッコ", ISFP: "ネコ", ESTP: "カンガルー", ESFP: "イルカ"
+  };
+  Object.keys(zukan).forEach((code) => assert.equal(TF.TYPES[code].animal, zukan[code], code));
 });
 
 test("グループ判定", () => {

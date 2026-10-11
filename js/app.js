@@ -628,6 +628,13 @@
       "</article>" +
       pending +
       '<section aria-label="ナビゲーターのコメント">' + talk(t.talk) + "</section>" +
+      '<section class="card zukan-memo" aria-labelledby="memoTitle">' +
+      '<span class="eyebrow">MBTI動物図鑑メモ</span>' +
+      '<h2 class="sec-title" id="memoTitle">なぜ' + esc(t.animal) + '？</h2>' +
+      '<p><span class="fact-badge">' + icon("sparkle") + esc(t.fact.title) + "</span></p>" +
+      "<p>" + esc(t.fact.text) + "</p>" +
+      (TF.CONFIG.ANIMAL_VIDEO_URL ? '<a class="btn btn-sm" href="' + esc(TF.CONFIG.ANIMAL_VIDEO_URL) + '" target="_blank" rel="noopener">動物図鑑の動画を見る</a>' : "") +
+      "</section>" +
       (res ? '<section class="card" aria-labelledby="axisTitle"><h2 class="sec-title" id="axisTitle">あなたの傾き</h2>' + axisBars(res.axes) +
         '<p class="small muted" style="margin-top:var(--s4)">50%に近い指標は、その日の気分で入れ替わることもあります。</p></section>' : "") +
       (res ? '<section class="card" aria-labelledby="shareTitle"><h2 class="sec-title" id="shareTitle">結果をシェアする</h2>' + shareButtons(shareText, typeShareUrl(code), "result") + "</section>" : "") +

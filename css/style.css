@@ -707,3 +707,10 @@ legend.q-text { display: block; width: 100%; padding: 0; text-align: center; min
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) :is(.dx-art, .art, .disc-sm, .p-face, .pm-face, .mq-face, .type-strip span, .mini-pair span) { background: color-mix(in srgb, var(--g, #b9b0a2) 24%, #f4efe6); color: #3a2e2c; }
 }
+
+/* 動物図鑑メモ */
+.zukan-memo { display: grid; gap: var(--s2); background: var(--g-tint); border-color: transparent; }
+.zukan-memo .sec-title { margin-bottom: 0; }
+.zukan-memo .btn { justify-self: start; margin-top: var(--s2); }
+.fact-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: var(--g); color: var(--g-on); font-size: var(--t-sm); font-weight: 800; }
+.fact-badge svg { width: 16px; height: 16px; }
