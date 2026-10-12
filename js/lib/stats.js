@@ -1,6 +1,6 @@
 // ============================================================
 //  都道府県ランキングの集計サーバーとのやりとり
-//  TF.CONFIG.STATS_ENDPOINT（Google Apps Script のURL）が空ならデモデータを使う
+//  TF.CONFIG.STATS_ENDPOINT（Google Apps Script のURL）が空のあいだは「準備中」扱い
 // ============================================================
 var TF = (globalThis.TF = globalThis.TF || {});
 
@@ -38,16 +38,18 @@ var TF = (globalThis.TF = globalThis.TF || {});
       });
       prefs[code] = row;
     });
-    return { demo: false, updatedAt: json.updatedAt || null, prefs: prefs };
+    return { ready: true, updatedAt: json.updatedAt || null, prefs: prefs };
   }
 
   /**
-   * 集計データを取得する。失敗したらデモデータにフォールバック。
-   * @returns {Promise<{demo:boolean, error?:boolean, updatedAt, prefs}>}
+   * 集計データを取得する。
+   * @returns {Promise<{ready:boolean, error?:boolean, updatedAt, prefs}>}
+   *   ready=false … 集計サーバー未設定（準備中）
+   *   error=true  … 読み込みに失敗
    */
   function getStats() {
     var url = endpoint();
-    if (!url) return Promise.resolve(TF.core.demoStats());
+    if (!url) return Promise.resolve({ ready: false, updatedAt: null, prefs: {} });
     var cached = readCache();
     if (cached) return Promise.resolve(cached);
     return fetch(url, { method: "GET", cache: "no-store" })
@@ -58,9 +60,7 @@ var TF = (globalThis.TF = globalThis.TF || {});
         return data;
       })
       .catch(function () {
-        var demo = TF.core.demoStats();
-        demo.error = true;
-        return demo;
+        return { ready: true, error: true, updatedAt: null, prefs: {} };
       });
   }
 
@@ -80,17 +80,17 @@ var TF = (globalThis.TF = globalThis.TF || {});
   }
 
   /**
-   * 投票を送る。サーバー未設定なら端末内に記録するだけ。
+   * 投票を送る（サーバー未設定のときは送らない）
    */
   function submitVote(prefCode, type) {
     var url = endpoint();
     try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {}
-    if (!url) return Promise.resolve({ ok: true, demo: true });
+    if (!url) return Promise.resolve({ ok: false });
     var body = JSON.stringify({ id: deviceId(), pref: Number(prefCode), type: type });
     // text/plain で送るとプリフライトが発生しない（Apps Script 向け）
     return fetch(url, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: body })
-      .then(function () { return { ok: true, demo: false }; })
-      .catch(function () { return { ok: false, demo: false }; });
+      .then(function () { return { ok: true }; })
+      .catch(function () { return { ok: false }; });
   }
 
   TF.stats = { getStats: getStats, submitVote: submitVote, isLive: function () { return !!endpoint(); } };

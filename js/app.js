@@ -52,6 +52,11 @@
     return TF.animalSvg(code, { cls: cls || "animal", title: withLabel ? code + " " + t.nick + "（" + t.animal + "）" : "" });
   }
   function fmt(n) { return Number(n).toLocaleString("ja-JP"); }
+  function updatedLabel(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return "";
+    return (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
   function pct1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
   function jpDate(d) {
     d = d || new Date();
@@ -281,7 +286,7 @@
   }
 
   function miniMap() {
-    var stats = statsCache || C.demoStats();
+    var stats = statsCache && statsCache.ready ? statsCache : { prefs: {} };
     return '<div class="mini-map" aria-hidden="true">' + TF.PREFECTURES.map(function (p) {
       var r = C.rankCounts(stats.prefs[p.code]);
       var cls = r.total ? g(r.list[0].type) : "";
@@ -344,7 +349,7 @@
       "<h3>今日いちばんツイてるのは<br>" + top.type + "（" + esc(TYPES[top.type].nick) + "）</h3>" +
       "<p>" + (myRank ? "あなたの " + mine + " は今日 <b>" + myRank + "位</b>。ラッキーアイテムもチェック！" : "あなたのタイプは何位？ ラッキーアイテムもチェック！") + "</p>" +
       '<ol class="podium-mini">' + podium + "</ol></a>" +
-      '<a class="card tile rank" href="#/ranking"><span class="tile-kicker">' + icon("map") + "県別ランキング</span><h3>あなたの県で<br>多いタイプは？</h3>" + miniMap() + "</a>" +
+      '<a class="card tile rank" href="#/ranking"><span class="tile-kicker">' + icon("map") + "県別ランキング" + (TF.stats.isLive() ? "" : " ・ 準備中") + "</span><h3>あなたの県で<br>多いタイプは？</h3>" + miniMap() + "</a>" +
       '<a class="card tile compat" href="#/compat"><span class="tile-kicker">' + icon("heart") + "相性チェック</span><h3>あの人との<br>相性は？</h3>" +
       '<div class="mini-pair"><span class="' + g(pairA) + '">' + animal(pairA) + '</span><span class="' + g(pairB) + '">' + animal(pairB) + "</span><b>" + pairScore + "%</b></div></a>" +
       stampCard() +
@@ -645,7 +650,7 @@
           '<p class="small" style="color:var(--ink-2)">このリンクを送ると、友達が診断したあとに、あなたとの相性がわかるのだ。</p>' +
           '<div class="btn-row" style="margin-top:var(--s4)"><button class="btn btn-metan" type="button" data-share="friend" data-share-text="' + esc("わたしは" + code + "だったよ！ 相性を診断してみて！") + '" data-share-url="' + esc(friendUrl) + '">' + icon("users") + "相性診断を送る</button>" +
           '<button class="btn" type="button" data-copy="' + esc(friendUrl) + '">' + icon("link") + "リンクをコピー</button></div></section>" +
-          voteCard(code)
+          (TF.stats.isLive() ? voteCard(code) : "")
         : "") +
       (!isResult
         ? '<section class="card"><h2 class="sec-title">このタイプをシェア</h2>' + shareButtons(shareText, typeShareUrl(code), "type") + "</section>" +
@@ -673,9 +678,10 @@
       TF.stats.submitVote(pref, code).then(function (r) {
         store.vote = { pref: pref, type: code, at: Date.now() };
         save();
-        toast(r.demo ? "記録したのだ！（いまはデモ集計なのだ）" : r.ok ? "ランキングに参加したのだ！" : "送信に失敗したのだ…時間をおいて試してね");
-        if (!r.ok) voteBtn.disabled = false;
-        else route();
+        toast(r.ok ? "ランキングに参加したのだ！" : "送信に失敗したのだ…時間をおいて試してね");
+        if (!r.ok) { voteBtn.disabled = false; return; }
+        statsCache = null; // 次にランキングを開いたとき最新を読み込む
+        route();
       });
     });
     var changeBtn = main.querySelector('[data-action="vote-change"]');
@@ -849,7 +855,19 @@
       '<button type="button" data-tab="type" aria-pressed="' + (tab === "type") + '">タイプから見る</button></div>';
 
     main.classList.add("wide");
-    setView(head + '<div class="stack" style="margin-top:14px">' + '<div id="demoFlag"></div>' + seg + '<div id="rankBody"><div class="card center muted">集計データを読み込み中なのだ…</div></div></div>');
+    if (!TF.stats.isLive()) {
+      // 集計サーバーの準備ができるまでは、ランキングを出さない
+      setView(head + '<div class="stack">' +
+        '<section class="card tint" style="display:grid;gap:var(--s3)">' + talk([
+          { who: "zunda", face: "normal", text: "都道府県ランキングは、ただいま準備中なのだ。" },
+          { who: "metan", face: "smile", text: "スタートしたら、あなたの1票で県の順位が変わるわよ。もう少し待っていてね。" }
+        ]) + "</section>" +
+        '<div class="btn-row"><a class="btn btn-zunda" href="#/fortune">' + icon("star") + "今日の運勢を見る</a>" +
+        '<a class="btn" href="#/compat">' + icon("heart") + "相性チェック</a></div></div>");
+      bindCommon();
+      return "都道府県ランキング";
+    }
+    setView(head + '<div class="stack">' + '<div id="rankNotice"></div>' + seg + '<div id="rankBody"><div class="card center muted">集計データを読み込み中なのだ…</div></div></div>');
 
     main.querySelectorAll("[data-tab]").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -860,10 +878,15 @@
 
     withStats(function (stats) {
       if (!document.getElementById("rankBody")) return; // 画面が変わっていたら何もしない
-      if (stats.demo) {
-        document.getElementById("demoFlag").innerHTML = '<div class="demo-flag">' + icon("warn") + "<span>" +
-          (stats.error ? "集計サーバーに接続できなかったため、" : "") +
-          "いまは<b>デモデータ（架空の数値）</b>を表示しています。集計サーバーを設定すると、このサイトで診断した人の投票から本物のランキングを表示します。</span></div>";
+      var notice = document.getElementById("rankNotice");
+      var total = C.rankCounts(C.nationalCounts(stats)).total;
+      if (stats.error) {
+        statsCache = null; // 次回また読み込みを試す
+        notice.innerHTML = '<div class="notice">' + icon("warn") + "<span>ランキングを読み込めなかったのだ…。時間をおいて、もう一度開いてみてね。</span></div>";
+      } else if (!total) {
+        notice.innerHTML = '<div class="notice">' + icon("vote") + "<span>まだ投票が集まっていないのだ。診断して、あなたの県の最初の1人になってほしいのだ！</span></div>";
+      } else {
+        notice.innerHTML = '<p class="small muted">全国の回答 ' + fmt(total) + "人" + (stats.updatedAt ? " ・ " + updatedLabel(stats.updatedAt) + "更新" : "") + "</p>";
       }
       var body = document.getElementById("rankBody");
       body.innerHTML = tab === "pref" ? prefView(stats, selPref) : typeView(stats, selType);
@@ -1013,7 +1036,7 @@
 
   function voteCta() {
     var mine = myType();
-    if (store.vote && store.vote.type) return "";
+    if (!TF.stats.isLive() || (store.vote && store.vote.type)) return "";
     if (mine) {
       return '<section class="card" style="background:var(--metan-tint);margin-top:14px;display:flex;gap:12px;align-items:center">' + avatar("metan", "smile") +
         '<div style="flex:1"><b>あなたの1票で、ランキングが変わるわよ。</b><div style="margin-top:8px"><a class="btn btn-sm btn-metan" href="#/result">結果ページから参加する</a></div></div></section>';

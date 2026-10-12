@@ -13,7 +13,7 @@ TF.CONFIG = {
   SITE_URL: "https://aakisachi.github.io/mbti-app/",
 
   // 都道府県ランキングの集計サーバー（Google Apps Script のウェブアプリURL）。
-  // 空文字のあいだは「デモデータ」で表示します。設定方法は README を参照。
+  // 空文字のあいだは、ランキングを「準備中」と表示し、投票フォームも出しません。設定方法は README を参照。
   STATS_ENDPOINT: "",
 
   // 動画「全16タイプを動物に例えると【MBTI動物図鑑】」のURL（YouTubeなど）。

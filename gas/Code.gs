@@ -61,6 +61,8 @@ function doPost(e) {
     } else {
       sh.appendRow(row);
     }
+    // 投票した人がすぐ自分の票を確認できるよう、集計の一時保存を消す
+    CacheService.getScriptCache().remove(CACHE_KEY);
   } finally {
     lock.releaseLock();
   }

@@ -4,7 +4,7 @@
 //  - 相性スコア
 //  - 日替わり運勢
 //  - 訪問スタンプ
-//  - 都道府県データの集計・デモデータ生成
+//  - 都道府県データの集計
 // ============================================================
 var TF = (globalThis.TF = globalThis.TF || {});
 
@@ -220,32 +220,6 @@ var TF = (globalThis.TF = globalThis.TF || {});
   }
 
   // ---------------------------------------------------------- 都道府県データ
-  // 全国のおおよその分布（デモデータ用。実データではありません）
-  var DEMO_BASE = {
-    INFP: 14, ENFP: 12, INFJ: 8, ISFJ: 8, ISFP: 7, ESFJ: 6, ENFJ: 6, INTP: 6,
-    ISTJ: 5, ESFP: 5, INTJ: 4, ENTP: 4, ISTP: 4, ESTJ: 4, ENTJ: 3, ESTP: 3
-  };
-
-  /**
-   * デモ用の都道府県データを作る（毎回同じ値）
-   * 戻り値: { demo: true, prefs: { "13": { INFP: 120, ... } } }
-   */
-  function demoStats(prefs, typeOrder) {
-    prefs = prefs || TF.PREFECTURES;
-    typeOrder = typeOrder || TF.TYPE_ORDER;
-    var out = {};
-    prefs.forEach(function (p) {
-      var r = rng(hashString("demo-pref:" + p.code));
-      var n = 300 + Math.floor(r() * 2700);
-      var weights = typeOrder.map(function (t) { return DEMO_BASE[t] * (0.6 + r() * 0.8); });
-      var sum = weights.reduce(function (s, w) { return s + w; }, 0);
-      var counts = {};
-      typeOrder.forEach(function (t, i) { counts[t] = Math.round((weights[i] / sum) * n); });
-      out[p.code] = counts;
-    });
-    return { demo: true, updatedAt: null, prefs: out };
-  }
-
   /**
    * 1つの地域（県 or 全国）の件数から、割合つきランキングを作る
    */
@@ -298,7 +272,6 @@ var TF = (globalThis.TF = globalThis.TF || {});
     compat: compat,
     fortune: fortune,
     visitStats: visitStats,
-    demoStats: demoStats,
     rankCounts: rankCounts,
     nationalCounts: nationalCounts,
     prefRankingForType: prefRankingForType

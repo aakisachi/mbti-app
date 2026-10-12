@@ -189,21 +189,28 @@ test("都道府県は47件で、タイル地図の位置が重ならない", () 
   });
 });
 
-test("デモ集計とランキング計算", () => {
-  const s1 = C.demoStats();
-  const s2 = C.demoStats();
-  assert.deepEqual(s1, s2);
-  assert.equal(s1.demo, true);
-  assert.equal(Object.keys(s1.prefs).length, 47);
-  const r = C.rankCounts(s1.prefs[13]);
+test("都道府県の集計からランキングを計算する", () => {
+  const stats = { prefs: { 13: { INFP: 30, ENFP: 20, INTJ: 10 }, 27: { ENFP: 5, ESFP: 5 }, 1: { INFP: 2 } } };
+  const r = C.rankCounts(stats.prefs[13]);
+  assert.equal(r.total, 60);
   assert.equal(r.list.length, 16);
+  assert.equal(r.list[0].type, "INFP");
+  assert.equal(r.list[0].rank, 1);
   for (let i = 1; i < r.list.length; i++) assert.ok(r.list[i - 1].count >= r.list[i].count);
-  const sum = r.list.reduce((s, x) => s + x.pct, 0);
-  assert.ok(Math.abs(sum - 100) < 1e-6);
+  assert.ok(Math.abs(r.list.reduce((sum, x) => sum + x.pct, 0) - 100) < 1e-6);
+  // 同数なら TYPE_ORDER の順（ENFP は ESFP より前）
+  assert.equal(C.rankCounts(stats.prefs[27]).list[0].type, "ENFP");
+  // 全国は県の合計
+  const nat = C.nationalCounts(stats);
+  assert.equal(nat.INFP, 32);
+  assert.equal(nat.ENFP, 25);
+  // データがない県は0件
   const empty = C.rankCounts({});
   assert.equal(empty.total, 0);
   empty.list.forEach((x) => assert.equal(x.pct, 0));
-  const byType = C.prefRankingForType(s1, "INFP");
-  assert.equal(byType.length, 47);
-  assert.ok(byType[0].pct >= byType[46].pct);
+  // タイプ別：データのある県だけ、割合の高い順
+  const byType = C.prefRankingForType(stats, "INFP");
+  assert.equal(byType.length, 3);
+  assert.equal(byType[0].pref.code, 1); // 北海道は100%
+  assert.equal(byType[0].rank, 1);
 });
