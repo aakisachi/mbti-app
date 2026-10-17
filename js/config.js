@@ -14,7 +14,7 @@ TF.CONFIG = {
 
   // 都道府県ランキングの集計サーバー（Google Apps Script のウェブアプリURL）。
   // 空文字のあいだは、ランキングを「準備中」と表示し、投票フォームも出しません。設定方法は README を参照。
-  STATS_ENDPOINT: "",
+  STATS_ENDPOINT: "https://script.google.com/macros/s/AKfycbwQHKJi2b7081fMEu8tXNj2fJqidP4aG3FdPyq18P7ELc4PhF414rLstq40OtodtqZ9_w/exec",
 
   // 動画「全16タイプを動物に例えると【MBTI動物図鑑】」のURL（YouTubeなど）。
   // 設定すると、各タイプの「なぜこの動物？」に動画へのボタンが出ます。
